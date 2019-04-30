@@ -10,9 +10,9 @@ tax_taxRank_names <- c("D"="Domain","K"="Kingdom","P"="Phylum","C"="Clade","O"="
 
 figure_options <- function(ns) {
   shiny::tagList(checkboxGroupInput(ns("taxRanks"),"Taxonomical ranks to display",tax_taxRanks,setdiff(tax_taxRanks,c("O","C","-")), inline = TRUE),
-                 sliderInput(ns("sankey_maxn"), "Number of taxa at each level", 1, 25, value = 10, step = 1),
-                 sliderInput(ns("scalingFactor"),"Scale distance between nodes", value = .9, min = .5, max = 1.5, step=.05),
-                 sliderInput(ns("height"),"Figure height", value = 400, min = 300, max = 1200, step=50),
+                 sliderInput(ns("sankey_maxn"), "Number of taxa at each level", 1, 25, value = 20, step = 1),
+                 sliderInput(ns("scalingFactor"),"Scale distance between nodes", value = 1, min = .5, max = 1.5, step=.05),
+                 sliderInput(ns("height"),"Figure height", value = 800, min = 300, max = 1200, step=50),
                  sliderInput(ns("nodeStrokeWidth"),"Node border width", value = 0, min = 0, max = 5, step=1),
                  sliderInput(ns("linkOpacity"),"Opacity of links", value = .6, min = .1, max = 1, step=.1),
                  sliderInput(ns("textXPos"),"Node label margins", value = 1, min = 0, max = 5, step=.5),
