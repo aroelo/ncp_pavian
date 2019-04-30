@@ -101,7 +101,7 @@ dashboardUI <- function(request) {
                     #tabItem("Alldata"),
                     tabItem("Comparison", comparisonModuleUI("comparison")),
                     #tabItem("Bacteria", comparisonModuleUI("bacteria")),
-                    #tabItem("Viruses", comparisonModuleUI("viruses")),
+                    tabItem("Viruses", comparisonModuleUI("viruses")),
                     #tabItem("Eukaryotes", comparisonModuleUI("eukaryotes")),
                     #tabItem("Fungi", comparisonModuleUI("fungi")),
                     #tabItem("Protists", comparisonModuleUI("protists")),
