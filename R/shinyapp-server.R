@@ -12,6 +12,28 @@ datatable_opts <- reactiveValues(
     class = "stripe hover row-border"
   )
 
+# set code for timeout
+timeoutSeconds <- 500
+
+inactivity <- sprintf("function idleTimer() {
+var t = setTimeout(logout, %s);
+window.onmousemove = resetTimer; // catches mouse movements
+window.onmousedown = resetTimer; // catches mouse movements
+window.onclick = resetTimer;     // catches mouse clicks
+window.onscroll = resetTimer;    // catches scrolling
+window.onkeypress = resetTimer;  //catches keyboard actions
+
+function logout() {
+Shiny.setInputValue('timeOut', '%ss')
+}
+
+function resetTimer() {
+clearTimeout(t);
+t = setTimeout(logout, %s);  // time is in milliseconds (1000 is 1 second)
+}
+}
+idleTimer();", timeoutSeconds*1000, timeoutSeconds, timeoutSeconds*1000)
+
 
 #' Pavian server function
 #'
@@ -65,6 +87,17 @@ pavianServer <- function(input, output, session) {
     }
   })
   
+  # Make sure timeout is not too short
+  observeEvent(input$timeOut, { 
+    print(paste0("Session (", session$token, ") timed out at: ", Sys.time()))
+    showModal(modalDialog(
+      title = "Timeout",
+      paste("Session timeout due to", input$timeOut, "inactivity -", Sys.time()),
+      footer = NULL
+    ))
+    session$close()
+  })
+
   # Trigger bookmarking
   setBookmarkExclude("bookmark_btn")
   observeEvent(input$bookmark_btn, {
