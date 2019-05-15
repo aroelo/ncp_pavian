@@ -1,6 +1,5 @@
-
 # identifications that are considered contaminants and may be filtered by default
-host_contaminants = c('Homo sapiens', 'Mus musculus', 'Chordata')
+host_contaminants = c('Viridiplantae','Homo sapiens', 'Mus musculus', 'Chordata')
 seq_contaminants = c(
   'artificial sequences',
   'Enterobacteria phage phiX174 sensu lato'
