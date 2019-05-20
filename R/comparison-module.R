@@ -468,7 +468,7 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     dataframe_container_and_formatFunction <- isolate({summarized_report_df()})
     myDf <- dataframe_container_and_formatFunction[[1]]
     myContainer <- dataframe_container_and_formatFunction[[2]]
-    
+    browser()
     #filtered_clade_reads()
     DT::datatable(myDf,
                   container=myContainer,
@@ -536,7 +536,33 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
         ))
     }
     
+    # Somehow reference taxid column by name?
+    # return '<a href=\"https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id='+taxid+'\" target=\"_blank\">' + data + '</a>';
+    # return '<a href=\"***REMOVED***/test.py?taxid='+taxid+'\" target=\"_blank\">' + data + '</a>';
+    myDf2 = myDf
+    # colnames_base = str_remove_all(colnames(myDf), ".(clade|taxon)Reads")
+    colnames(myDf2) = str_remove_all(colnames(myDf), ".(clade|taxon)Reads")
+    for (sample_name in sample_data()['Name'][[1]]) {
+      if (sample_name %in% colnames(myDf2)) {
+        # browser()
+        columnDefs[length(columnDefs) + 1] <-
+          list(list(name = "test", targets = which(colnames(myDf2) == sample_name) - zero_col,
+                    render = htmlwidgets::JS("function(data, type, row) {
+                  taxid = row[2]
+                  var title = table.column( meta.col ).header();                             
+                  var columnName = $(title).html();
+                  if (data > 0){
+                    return '<a href=\"http://***REMOVED***/cgi-bin/test.py?taxid='+taxid +'\" target=\"_blank\">' + data + '</a>';
+                  } else{
+                    return '';
+                  }
+              }")
+          ))
+      }
+    }
+
     columnDefs
+    # browser()
   }
 
   observeEvent(input$opt_taxRank, {
