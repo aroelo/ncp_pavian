@@ -468,6 +468,11 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     dataframe_container_and_formatFunction <- isolate({summarized_report_df()})
     myDf <- dataframe_container_and_formatFunction[[1]]
     myContainer <- dataframe_container_and_formatFunction[[2]]
+    sample_files <- vector(mode="list", length=nrow(sample_data()))
+    names(sample_files) <- sample_data()[["Name"]]
+    for (i in 1:nrow(sample_data())) {
+      sample_files[i] = sample_data()[["ReportFile"]][i]
+    }
     #filtered_clade_reads()
     DT::datatable(myDf,
                   container=myContainer,
@@ -477,7 +482,7 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
                   class=datatable_opts$class,
                   options = list(
                     stateSave = TRUE,
-                    columnDefs = get_columnDefs(myDf, nColumnsBefore = 2, nColumnsAfter = 1),
+                    columnDefs = get_columnDefs(myDf, nColumnsBefore = 2, nColumnsAfter = 1, sample_files),
                     #autoWidth = TRUE,
                     buttons = common_buttons(base_set_name(), "matrix-view"),
                     drawCallback = drawCallback,
@@ -507,7 +512,7 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
                    groupSampleColumns = input$opt_groupSamples)
   })
   
-  get_columnDefs <- function(myDf, nColumnsBefore, nColumnsAfter) {
+  get_columnDefs <- function(myDf, nColumnsBefore, nColumnsAfter, sample_files) {
     zero_col <- ifelse(show_rownames, 0, 1)
     
     columnDefs <- list(
@@ -535,22 +540,30 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     }
     
     # Somehow reference taxid column by name?
+    sample_no_clade = 1
+    sample_no_taxon = 1
     for (colname in colnames(myDf)) {
       if (endsWith(colname, "Reads")){
+        if (endsWith(colname, "cladeReads")){
+          bam_file = sub("\\.[^.]*$", ".bam", sample_files[sample_no_clade])
+          sample_no_clade = sample_no_clade + 1
+        }
+        if (endsWith(colname, "taxonReads")){
+          bam_file = sub("\\.[^.]*$", ".bam", sample_files[sample_no_taxon])
+          sample_no_taxon = sample_no_taxon + 1
+        }
         columnDefs[length(columnDefs) + 1] <-
           list(list(targets = which(colnames(myDf) == colname) - zero_col,
-                    render = htmlwidgets::JS("function(data, type, row, meta) {
-                  // title = $('#test123').DataTable().columns( meta.col ).header();
-                  // console.log(title);
-                  // columnName = $(title).html();
-                  // console.log(columnName)
+                    render = htmlwidgets::JS(paste("function(data, type, row, meta) {
+                  bam_file = '", bam_file ,"'
+                  console.log(bam_file)
                   taxid = row[2]
                   if (data > 0){
-                    return '<a href=\"http://***REMOVED***/cgi-bin/test.py?taxid=' + taxid + '\" target=\"_blank\">' + data + '</a>';
+                    return '<a href=\"http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=' + taxid + '&sample=' + bam_file + '\" target=\"_blank\">' + data + '</a>';
                   } else{
                     return '';
                   }
-              }")
+              }", sep=""))
           ))
       }
     }
