@@ -468,7 +468,6 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     dataframe_container_and_formatFunction <- isolate({summarized_report_df()})
     myDf <- dataframe_container_and_formatFunction[[1]]
     myContainer <- dataframe_container_and_formatFunction[[2]]
-    browser()
     #filtered_clade_reads()
     DT::datatable(myDf,
                   container=myContainer,
@@ -507,7 +506,6 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
                    nColumnsBefore = ncol(tax_data()) - 1,
                    groupSampleColumns = input$opt_groupSamples)
   })
-
   
   get_columnDefs <- function(myDf, nColumnsBefore, nColumnsAfter) {
     zero_col <- ifelse(show_rownames, 0, 1)
@@ -537,22 +535,18 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     }
     
     # Somehow reference taxid column by name?
-    # return '<a href=\"https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id='+taxid+'\" target=\"_blank\">' + data + '</a>';
-    # return '<a href=\"***REMOVED***/test.py?taxid='+taxid+'\" target=\"_blank\">' + data + '</a>';
-    myDf2 = myDf
-    # colnames_base = str_remove_all(colnames(myDf), ".(clade|taxon)Reads")
-    colnames(myDf2) = str_remove_all(colnames(myDf), ".(clade|taxon)Reads")
-    for (sample_name in sample_data()['Name'][[1]]) {
-      if (sample_name %in% colnames(myDf2)) {
-        # browser()
+    for (colname in colnames(myDf)) {
+      if (endsWith(colname, "Reads")){
         columnDefs[length(columnDefs) + 1] <-
-          list(list(name = "test", targets = which(colnames(myDf2) == sample_name) - zero_col,
-                    render = htmlwidgets::JS("function(data, type, row) {
+          list(list(targets = which(colnames(myDf) == colname) - zero_col,
+                    render = htmlwidgets::JS("function(data, type, row, meta) {
+                  // title = $('#test123').DataTable().columns( meta.col ).header();
+                  // console.log(title);
+                  // columnName = $(title).html();
+                  // console.log(columnName)
                   taxid = row[2]
-                  var title = table.column( meta.col ).header();                             
-                  var columnName = $(title).html();
                   if (data > 0){
-                    return '<a href=\"http://***REMOVED***/cgi-bin/test.py?taxid='+taxid +'\" target=\"_blank\">' + data + '</a>';
+                    return '<a href=\"http://***REMOVED***/cgi-bin/test.py?taxid=' + taxid + '\" target=\"_blank\">' + data + '</a>';
                   } else{
                     return '';
                   }
@@ -560,9 +554,8 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
           ))
       }
     }
-
+    
     columnDefs
-    # browser()
   }
 
   observeEvent(input$opt_taxRank, {

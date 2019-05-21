@@ -389,6 +389,7 @@ get_dt_container <- function(numericColumns, taxColumns, sampleNames, groupSampl
     }
     
     dt_container = htmltools::withTags(table(
+      id = 'test123',
       class = 'display',
       thead(
         tr( # top row
