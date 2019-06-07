@@ -1,7 +1,7 @@
 library(reticulate)
 library(shiny)
+library(stringr)
 use_condaenv("pavian")
-
 
 
 if(!require(pavian)){

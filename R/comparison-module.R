@@ -503,8 +503,51 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
               Shiny.onInputChange("comparison-double_clicked_row", data[data.length - 1] + ">" +data1)
               //alert("You clicked on "+data[0]+"\'s row");
               }
+              
               )
-              ')
+              table.on("mouseover", "tbody td", function (event) {
+              var test = $("#DataTables_Table_0");
+              var test2 = test.DataTable();
+
+              var colIdx = test2.cell(this).index().column;
+              var title = test2.column(colIdx).header();
+              var colName = $(title).html();
+
+              var rowIdx = test2.cell(this).index().row;
+              
+              var taxid_string = test2.cell(rowIdx,2).data();
+              var taxid = $(taxid_string).text();
+              var cell = test2.cell(this);
+              var link_str = \'<p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
+              if (colName != "Name" && colName != "Rank" && colName != "TID"&& colName != "Max" && colName != "Lineage"){
+                console.log("Colidx: " + colIdx);
+                console.log("Colname: " + colName);
+                console.log("Rowidx: " + rowIdx);
+                console.log("Taxid: " + taxid);
+                console.log("Taxid_string: " + taxid_string);
+                console.log("Cell: " + cell);
+                console.log("Cell var: " + $(cell));
+                console.log(link_str);
+                $(cell).qtip({
+                  overwrite: false,
+                  content: link_str,
+                  position: {
+                    my: "right center",
+                    at: "left center",
+                    target: "mouse",
+                  },
+                  show: {
+                    event: event.type,
+                    ready: true,
+                    solo: true,
+                  },
+                  hide: {
+                    fixed: true
+                  }
+                }, event); // Note we passed the event as the second argument. Always do this when binding within an event handler!
+                
+              }
+                })')
     ) %>% formatDT(nSamples = nrow(sample_data()),
                    numericColumns = numericColumns(),
                    statsColumns = input$opt_statsColumns,
@@ -539,34 +582,34 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
         ))
     }
     
-    # Somehow reference taxid column by name?
-    sample_no_clade = 1
-    sample_no_taxon = 1
-    for (colname in colnames(myDf)) {
-      if (endsWith(colname, "Reads")){
-        if (endsWith(colname, "cladeReads")){
-          bam_file = sub("\\.[^.]*$", ".bam", sample_files[sample_no_clade])
-          sample_no_clade = sample_no_clade + 1
-        }
-        if (endsWith(colname, "taxonReads")){
-          bam_file = sub("\\.[^.]*$", ".bam", sample_files[sample_no_taxon])
-          sample_no_taxon = sample_no_taxon + 1
-        }
-        columnDefs[length(columnDefs) + 1] <-
-          list(list(targets = which(colnames(myDf) == colname) - zero_col,
-                    render = htmlwidgets::JS(paste("function(data, type, row, meta) {
-                  bam_file = '", bam_file ,"'
-                  console.log(bam_file)
-                  taxid = row[2]
-                  if (data > 0){
-                    return '<a href=\"http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=' + taxid + '&sample=' + bam_file + '\" target=\"_blank\">' + data + '</a>';
-                  } else{
-                    return '';
-                  }
-              }", sep=""))
-          ))
-      }
-    }
+    # Added by ***REMOVED***, click on sample and use taxid for cgi script. DEPRECATED
+    # sample_no_clade = 1
+    # sample_no_taxon = 1
+    # for (colname in colnames(myDf)) {
+    #   if (endsWith(colname, "Reads")){
+    #     if (endsWith(colname, "cladeReads")){
+    #       bam_file = sub("\\.[^.]*$", ".bam", sample_files[sample_no_clade])
+    #       sample_no_clade = sample_no_clade + 1
+    #     }
+    #     if (endsWith(colname, "taxonReads")){
+    #       bam_file = sub("\\.[^.]*$", ".bam", sample_files[sample_no_taxon])
+    #       sample_no_taxon = sample_no_taxon + 1
+    #     }
+    #     columnDefs[length(columnDefs) + 1] <-
+    #       list(list(targets = which(colnames(myDf) == colname) - zero_col,
+    #                 render = htmlwidgets::JS(paste("function(data, type, row, meta) {
+    #               bam_file = '", bam_file ,"'
+    #               console.log(bam_file)
+    #               taxid = row[2]
+    #               if (data > 0){
+    #                 return '<a href=\"http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=' + taxid + '&sample=' + bam_file + '\" target=\"_blank\">' + data + '</a>';
+    #               } else{
+    #                 return '';
+    #               }
+    #           }", sep=""))
+    #       ))
+    #   }
+    # }
     
     columnDefs
   }
