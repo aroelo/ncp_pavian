@@ -1,4 +1,4 @@
-FROM rocker/r-ver:3.5.3
+FROM rocker/r-ver:3.6.0
 
 MAINTAINER Florian Breitwieser "florian.bw@gmail.com"
 
