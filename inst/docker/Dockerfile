@@ -25,7 +25,7 @@ RUN wget --no-verbose https://download3.rstudio.org/ubuntu-14.04/x86_64/VERSION 
     chown shiny:shiny /var/lib/shiny-server
 
 RUN R -e "options(repos = c(CRAN = 'http://cran.rstudio.com')); install.packages(c('remotes'));"
-RUN R -e "source('https://bioconductor.org/biocLite.R'); biocLite('Rsamtools')"
+RUN R -e "if (!requireNamespace('BiocManager', quietly = TRUE)) install.packages('BiocManager');BiocManager::install('Rsamtools')"
 RUN R -e "remotes::install_github('fbreitwieser/pavian')"
 
 COPY shiny-server.conf  /etc/shiny-server/shiny-server.conf
