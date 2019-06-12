@@ -1,6 +1,7 @@
 library(reticulate)
 library(shiny)
 library(stringr)
+# library(shinyFileTree)
 use_condaenv("pavian")
 
 
@@ -52,4 +53,5 @@ options(
   )
 )
 
-shiny::shinyApp(pavian::dashboardUI, pavian::pavianServer, enableBookmarking="server")
+pavian::runApp()
+# shiny::shinyApp(pavian::dashboardUI, pavian::pavianServer, enableBookmarking="server")
