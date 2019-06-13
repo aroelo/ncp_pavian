@@ -1,0 +1,3 @@
+job:
+  script:
+    - /home/shiny/ci.bash
