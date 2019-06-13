@@ -3,6 +3,8 @@ library(shiny)
 library(stringr)
 # library(shinyFileTree)
 use_condaenv("pavian")
+# library(pavian, lib.loc="/usr/local/lib/R/dev-library")
+library(pavian, lib.loc="/home/shiny/miniconda3/envs/pavian/lib/R/dev-library")
 
 
 if(!require(pavian)){
@@ -10,8 +12,12 @@ if(!require(pavian)){
   #runUrl("http://gitlab.naktuinbouw.net/bioinformatics/pavian/blob/master/pavian_0.8.4.tar.gz",filetype=".tar.gz.")
   #download.file("http://gitlab.naktuinbouw.net/bioinformatics/pavian/raw/master/pavian_0.8.4.tar.gz", "/tmp/pavian.tar.gz")
   #install.packages("/tmp/pavian.tar.gz", repos = NULL, type="source")
-  install.packages(".", repos = NULL, type="source")
-  library(pavian)
+  # install.packages(".", repos = NULL, type="source")
+  # install.packages(pavian, lib="/usr/local/lib/R/dev-library", repos = NULL, type="source")
+  install.packages(pavian, lib="/home/shiny/miniconda3/envs/pavian/lib/R/dev-library", repos = NULL, type="source")
+  # library(pavian, lib.loc="/usr/local/lib/R/dev-library")
+  library(pavian, lib.loc="/home/shiny/miniconda3/envs/pavian/lib/R/dev-library")
+  # library(pavian)
 }
 
 if (!require(Rsamtools)) {
