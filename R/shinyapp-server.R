@@ -13,7 +13,7 @@ datatable_opts <- reactiveValues(
   )
 
 # set code for timeout
-timeoutSeconds <- 500
+timeoutSeconds <- 50000
 
 inactivity <- sprintf("function idleTimer() {
 var t = setTimeout(logout, %s);
