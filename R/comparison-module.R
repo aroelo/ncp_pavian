@@ -505,29 +505,26 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
               }
               
               )
-              table.on("mouseover", "tbody td", function (event) {
-              var test = $("#DataTables_Table_0");
-              var test2 = test.DataTable();
-
-              var colIdx = test2.cell(this).index().column;
-              var title = test2.column(colIdx).header();
+              table.on("mouseover.dt", "tbody td", function (event) {
+              var colIdx = table.cell(this).index().column;
+              var title = table.column(colIdx).header();
               var colName = $(title).html();
 
-              var rowIdx = test2.cell(this).index().row;
+              var rowIdx = table.cell(this).index().row;
               
-              var taxid_string = test2.cell(rowIdx,2).data();
-              var taxid = $(taxid_string).text();
-              var cell = test2.cell(this);
+              var taxid_string = table.cell(rowIdx,2).data();
+              //var taxid = $(taxid_string).text();
+              var cell = table.cell(this);
               var link_str = \'<p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
               if (colName != "Name" && colName != "Rank" && colName != "TID"&& colName != "Max" && colName != "Lineage"){
-                console.log("Colidx: " + colIdx);
-                console.log("Colname: " + colName);
-                console.log("Rowidx: " + rowIdx);
-                console.log("Taxid: " + taxid);
-                console.log("Taxid_string: " + taxid_string);
-                console.log("Cell: " + cell);
-                console.log("Cell var: " + $(cell));
-                console.log(link_str);
+                //console.log("Colidx: " + colIdx);
+                //console.log("Colname: " + colName);
+                //console.log("Rowidx: " + rowIdx);
+                //console.log("Taxid: " + taxid);
+                //console.log("Taxid_string: " + taxid_string);
+                //console.log("Cell: " + cell);
+                //console.log("Cell var: " + $(cell));
+                //console.log(link_str);
                 $(cell).qtip({
                   overwrite: false,
                   content: link_str,
