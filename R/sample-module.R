@@ -255,7 +255,8 @@ sampleModule <- function(input, output, session, sample_data, reports,
     selected_taxon <- hover_plots$taxon
     taxIndex <- which(tax_data()$name == selected_taxon)[1]
     clade_reads_m <- na0(clade_reads()[taxIndex, ]) - na0(taxon_reads()[taxIndex,])
-    short_name <- substr(sample_data()$Name, 1, 10)
+    # short_name <- substr(sample_data()$Name, 1, 10)
+    short_name <- sample_data()$Name
     for (si in unique(short_name)) {
       sel <- si %in% short_name
       if (sum(sel) > 1) {
