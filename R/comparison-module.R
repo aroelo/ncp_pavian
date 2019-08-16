@@ -530,8 +530,8 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
                   content: link_str,
                   position: {
                     my: "right center",
-                    at: "left center",
-                    target: "mouse",
+                    at: "center",
+                    target: "event",
                   },
                   show: {
                     event: event.type,
