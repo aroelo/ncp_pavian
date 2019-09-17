@@ -46,6 +46,7 @@ read_server_directory1 <- function(dirs_or_files, sample_set_name = NULL,
   file_sel <- !is.na(file_infos$isdir) & !file_infos$isdir
   if (any(file_sel)) {
       my_set_name <- get_sampleset_name("Server files")
+      browser()
       new_sample_sets[[my_set_name]] <- read_sample_data(rownames(file_infos)[file_sel], 
                                                          ext=NULL, is_files=TRUE)
   }

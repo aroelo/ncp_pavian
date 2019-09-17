@@ -49,12 +49,15 @@ read_sample_data <- function(my_dir, def_filename = "sample_data.csv",
         Name <- substr(Name, 1, nchar(Name) - 1)
       }
     } else {
-      if (length(Name) > 1) {
-        while(max(nchar(Name)) >= 2 && length(unique(substr(Name, nchar(Name), nchar(Name)))) == 1) {
-          Name <- substr(Name, 1, nchar(Name) - 1)
-        }
-      }
+      Name <- tools::file_path_sans_ext(Name)
     }
+    # else {
+    #   if (length(Name) > 1) {
+    #     while(max(nchar(Name)) >= 2 && length(unique(substr(Name, nchar(Name), nchar(Name)))) == 1) {
+    #       Name <- substr(Name, 1, nchar(Name) - 1)
+    #     }
+    #   }
+    # }
 
     sample_data <- data.frame(Name,
                               ReportFile = ReportFiles, 

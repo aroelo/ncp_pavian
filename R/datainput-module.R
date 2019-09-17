@@ -62,6 +62,14 @@ uploadFilePanel <- function(ns) {
            ))
 }
 
+datatablePanel <- function(ns) {
+  tabPanel("Use datatable",
+           "Select data from datatable",
+           DT::dataTableOutput(ns('data_input_table')),
+           actionButton(ns("datatable_upload"), label = "Load example datasets")
+           )
+}
+
 #' UI part of pavian data input module
 #'
 #' @param id Namespace ID.
@@ -101,6 +109,7 @@ dataInputModuleUI <- function(id,
         selected = start_with,
         uploadFilePanel(ns),
         serverDataPanel(ns),
+        datatablePanel(ns),
         exampleDataPanel(ns)
       )
     } else {
@@ -109,6 +118,7 @@ dataInputModuleUI <- function(id,
         title = "Data Source",
         selected = start_with,
         uploadFilePanel(ns),
+        datatablePanel(ns),
         exampleDataPanel(ns)
       )
     }
@@ -169,6 +179,24 @@ dataInputModule <- function(input, output, session,
   
   read_error_msg <- reactiveValues(val_pos = NULL, val_neg = NULL)
   
+  files <- c("20190828_campanula_no_centrifuge.campanula.ntwgs.pavian", "20190814_campanula.ntwgs.pavian", "20190814_campanula.wgs.pavian")
+  hosts <- c("campanula", "campanula", "campanula")
+  dates <- c("08-28-2019", "08-14-2019", "08-14-2019")
+  test_input <- data.frame("file" = files, "host" = hosts, "date" = dates, stringsAsFactors = FALSE)
+  
+  output$data_input_table <- DT::renderDataTable({
+    test_input
+    # mtcars
+  })
+  
+  observeEvent(input$datatable_upload, {
+    fnames = test_input[input$data_input_table_rows_selected,]$file
+    base_dir = '/home/***REMOVED***/RProjects/pavian/input/'
+    fnames = paste0(base_dir, fnames)
+    browser()
+    read_server_directory(fnames)
+  })
+  
   output$upload_info <- renderUI({
     req(!is.null(read_error_msg$val_pos) ||
           !is.null(read_error_msg$val_neg))
@@ -226,6 +254,7 @@ dataInputModule <- function(input, output, session,
   
   read_server_directory2 <-
     function(data_dir, sample_set_name = NULL, ...) {
+      browser()
       sample_sets_val <- isolate(sample_sets$val)
       res <-
         read_server_directory1(data_dir,
@@ -246,8 +275,14 @@ dataInputModule <- function(input, output, session,
         need(res$sample_sets, message = "No sample sets available. Set a different directory")
       )
       
+      # c(res$sample_sets, res$sample_sets[!names(res$sample_sets) %in% names(sample_sets_val)])
+      browser()
+      if (names(res$sample_sets) == 'Server files') {sample_sets$val = res$sample_sets}
+      
+      else{
       sample_sets$val <-
         c(sample_sets_val, res$sample_sets[!names(res$sample_sets) %in% names(sample_sets_val)])
+      }
       sample_sets$selected <- names(res$sample_sets)[1]
       return(TRUE)
     }
@@ -307,6 +342,7 @@ dataInputModule <- function(input, output, session,
   observeEvent(input$btn_read_tree_dirs, {
     fnames <- input$file_tree_selected
     fnames <- sub(" \\([0-9]+ f[io].*\\)$", "", fnames)
+
     if (all(startsWith(fnames, fnames[1]))) {
       fnames <- fnames[1]
     }
