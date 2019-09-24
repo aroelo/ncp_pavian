@@ -4,8 +4,9 @@ library(stringr)
 # library(shinyFileTree)
 use_condaenv("pavian")
 # library(pavian, lib.loc="/usr/local/lib/R/dev-library")
+library(RMySQL)
+library(shinyWidgets)
 library(pavian, lib.loc="/home/shiny/miniconda3/envs/pavian/lib/R/dev-library")
-
 
 if(!require(pavian)){
   options(repos = c(CRAN = "http://cran.rstudio.com"))

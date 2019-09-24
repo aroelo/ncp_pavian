@@ -64,9 +64,16 @@ uploadFilePanel <- function(ns) {
 
 datatablePanel <- function(ns) {
   tabPanel("Use datatable",
-           "Select data from datatable",
+           searchInput(
+             inputId = ns("search_taxid"), label = "Search for taxids",
+             placeholder = "e.g: 12271, 12274",
+             btnSearch = icon("search"),
+             btnReset = icon("remove"),
+             width = "450px"
+           ),
+           verbatimTextOutput(outputId = ns('res')),
            DT::dataTableOutput(ns('data_input_table')),
-           actionButton(ns("datatable_upload"), label = "Load example datasets")
+           actionButton(ns("datatable_upload"), label = "Load selected datasets")
            )
 }
 
@@ -179,10 +186,38 @@ dataInputModule <- function(input, output, session,
   
   read_error_msg <- reactiveValues(val_pos = NULL, val_neg = NULL)
   
-  files <- c("20190828_campanula_no_centrifuge.campanula.ntwgs.pavian", "20190814_campanula.ntwgs.pavian", "20190814_campanula.wgs.pavian")
-  hosts <- c("campanula", "campanula", "campanula")
-  dates <- c("08-28-2019", "08-14-2019", "08-14-2019")
-  test_input <- data.frame("file" = files, "host" = hosts, "date" = dates, stringsAsFactors = FALSE)
+  # files <- c("20190828_campanula_no_centrifuge.campanula.ntwgs.pavian", "20190814_campanula.ntwgs.pavian", "20190814_campanula.wgs.pavian")
+  # hosts <- c("campanula", "campanula", "campanula")
+  # dates <- c("08-28-2019", "08-14-2019", "08-14-2019")
+  # test_input <- data.frame("file" = files, "host" = hosts, "date" = dates, stringsAsFactors = FALSE)
+  
+  mydb = dbConnect(MySQL(), user='root', dbname='pavian', host='127.0.0.1')
+  test_input <- dbGetQuery(mydb, "SELECT file, run, sample, nt, date FROM pavian_data GROUP BY file;")
+  
+  observeEvent(input$search_taxid, {
+    browser()
+    if (input$search_taxid == ""){
+      complete_query <- "SELECT file, run, sample, nt, date FROM pavian_data GROUP BY file"
+    }
+    else{
+    search_query_list <- strsplit(input$search_taxid, ", ")
+    taxid_queries <- list()
+    name_queries <- list()
+    for (item in search_query_list){
+      if (!is.na(as.numeric(item))){
+        taxid_queries <- c(taxid_queries, paste0("organism_taxid = ", item))
+        name_queries <- c(name_queries, paste0("organism_name = ", item))
+      }
+    }
+    taxid_queries = paste(taxid_queries, collapse=' || ')
+    taxid_queries = paste(name_queries, collapse=' || ')
+    complete_query <- paste0("SELECT file, run, sample, nt, date FROM pavian_data WHERE ", taxid_queries, " GROUP BY file")
+    }
+    test_input <- dbGetQuery(mydb, complete_query)
+    output$data_input_table <- DT::renderDataTable({
+      test_input
+    })
+  })
   
   output$data_input_table <- DT::renderDataTable({
     test_input
@@ -193,7 +228,6 @@ dataInputModule <- function(input, output, session,
     fnames = test_input[input$data_input_table_rows_selected,]$file
     base_dir = '/home/***REMOVED***/RProjects/pavian/input/'
     fnames = paste0(base_dir, fnames)
-    browser()
     read_server_directory(fnames)
   })
   
@@ -254,7 +288,6 @@ dataInputModule <- function(input, output, session,
   
   read_server_directory2 <-
     function(data_dir, sample_set_name = NULL, ...) {
-      browser()
       sample_sets_val <- isolate(sample_sets$val)
       res <-
         read_server_directory1(data_dir,
@@ -276,7 +309,6 @@ dataInputModule <- function(input, output, session,
       )
       
       # c(res$sample_sets, res$sample_sets[!names(res$sample_sets) %in% names(sample_sets_val)])
-      browser()
       if (names(res$sample_sets) == 'Server files') {sample_sets$val = res$sample_sets}
       
       else{
