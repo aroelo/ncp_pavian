@@ -3,6 +3,8 @@
 library(shiny)
 library(rhandsontable)
 library(shinyFileTree)
+library(RMySQL)
+library(shinyWidgets)
 
 serverDataPanel <- function(ns) {
   tabPanel(
@@ -88,6 +90,8 @@ datatablePanel <- function(ns) {
 #' @import shiny
 #' @import shinydashboard
 #' @import rhandsontable
+#' @import shinyWidgets
+#' @import RMySQL
 dataInputModuleUI <- function(id,
                               server_access = getOption("pavian.server_access", default = FALSE),
                               start_with = getOption("pavian.start_data_input_with", "Upload files")) {
@@ -195,7 +199,6 @@ dataInputModule <- function(input, output, session,
   test_input <- dbGetQuery(mydb, "SELECT file, run, sample, nt, date FROM pavian_data GROUP BY file;")
   
   observeEvent(input$search_taxid, {
-    browser()
     if (input$search_taxid == ""){
       complete_query <- "SELECT file, run, sample, nt, date FROM pavian_data GROUP BY file"
     }
