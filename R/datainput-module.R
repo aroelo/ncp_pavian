@@ -4,7 +4,6 @@ library(shiny)
 library(rhandsontable)
 library(shinyFileTree)
 library(RMySQL)
-library(shinyWidgets)
 
 serverDataPanel <- function(ns) {
   tabPanel(
@@ -65,8 +64,9 @@ uploadFilePanel <- function(ns) {
 }
 
 datatablePanel <- function(ns) {
+  req(requireNamespace("shinyWidgets"))
   tabPanel("Use datatable",
-           searchInput(
+           shinyWidgets::searchInput(
              inputId = ns("search_taxid"), label = "Search for taxids",
              placeholder = "e.g: 12271, 12274",
              btnSearch = icon("search"),
@@ -90,8 +90,6 @@ datatablePanel <- function(ns) {
 #' @import shiny
 #' @import shinydashboard
 #' @import rhandsontable
-#' @import shinyWidgets
-#' @import RMySQL
 dataInputModuleUI <- function(id,
                               server_access = getOption("pavian.server_access", default = FALSE),
                               start_with = getOption("pavian.start_data_input_with", "Upload files")) {
@@ -195,8 +193,8 @@ dataInputModule <- function(input, output, session,
   # dates <- c("08-28-2019", "08-14-2019", "08-14-2019")
   # test_input <- data.frame("file" = files, "host" = hosts, "date" = dates, stringsAsFactors = FALSE)
   
-  mydb = dbConnect(MySQL(), user='root', dbname='pavian', host='127.0.0.1')
-  test_input <- dbGetQuery(mydb, "SELECT file, run, sample, nt, date FROM pavian_data GROUP BY file;")
+  mydb = DBI::dbConnect(RMySQL::MySQL(), user='root', dbname='pavian', host='127.0.0.1')
+  test_input <- DBI::dbGetQuery(mydb, "SELECT file, run, sample, nt, date FROM pavian_data GROUP BY file;")
   
   observeEvent(input$search_taxid, {
     if (input$search_taxid == ""){
@@ -216,7 +214,7 @@ dataInputModule <- function(input, output, session,
     taxid_queries = paste(name_queries, collapse=' || ')
     complete_query <- paste0("SELECT file, run, sample, nt, date FROM pavian_data WHERE ", taxid_queries, " GROUP BY file")
     }
-    test_input <- dbGetQuery(mydb, complete_query)
+    test_input <- DBI::dbGetQuery(mydb, complete_query)
     output$data_input_table <- DT::renderDataTable({
       test_input
     })
