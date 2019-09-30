@@ -67,7 +67,8 @@ datatablePanel <- function(ns) {
   req(requireNamespace("shinyWidgets"))
   tabPanel("Use datatable",
            shinyWidgets::searchInput(
-             inputId = ns("search_taxid"), label = "Search for taxids",
+             inputId = ns("search_taxid"), label = "Search for taxid and/or organism name.",
+             value = "",
              placeholder = "e.g: 12271, 12274",
              btnSearch = icon("search"),
              btnReset = icon("remove"),
@@ -188,45 +189,53 @@ dataInputModule <- function(input, output, session,
   
   read_error_msg <- reactiveValues(val_pos = NULL, val_neg = NULL)
   
-  # files <- c("20190828_campanula_no_centrifuge.campanula.ntwgs.pavian", "20190814_campanula.ntwgs.pavian", "20190814_campanula.wgs.pavian")
-  # hosts <- c("campanula", "campanula", "campanula")
-  # dates <- c("08-28-2019", "08-14-2019", "08-14-2019")
-  # test_input <- data.frame("file" = files, "host" = hosts, "date" = dates, stringsAsFactors = FALSE)
-  
   mydb = DBI::dbConnect(RMySQL::MySQL(), user='root', dbname='pavian', host='127.0.0.1')
-  test_input <- DBI::dbGetQuery(mydb, "SELECT file, run, sample, nt, date FROM pavian_data GROUP BY file;")
+  rv = reactiveValues(test_input = DBI::dbGetQuery(mydb, "SELECT file, run, sample, nt, date FROM pavian_data GROUP BY file"))
   
   observeEvent(input$search_taxid, {
     if (input$search_taxid == ""){
       complete_query <- "SELECT file, run, sample, nt, date FROM pavian_data GROUP BY file"
     }
     else{
-    search_query_list <- strsplit(input$search_taxid, ", ")
-    taxid_queries <- list()
-    name_queries <- list()
-    for (item in search_query_list){
-      if (!is.na(as.numeric(item))){
-        taxid_queries <- c(taxid_queries, paste0("organism_taxid = ", item))
-        name_queries <- c(name_queries, paste0("organism_name = ", item))
+      search_query_list <- strsplit(input$search_taxid, ", ")
+      taxid_queries <- list()
+      name_queries <- list()
+      for (item in search_query_list){
+        if (!is.na(as.numeric(item))){
+          taxid_queries <- c(taxid_queries, paste0("organism_taxid = ", item))
+        }
+        else{
+          name_queries <- c(name_queries, paste0("organism_name = '", item,"'"))
+        }
+      }
+      taxid_queries = paste(taxid_queries, collapse=' || ')
+      name_queries = paste(name_queries, collapse=' || ')
+      if (taxid_queries != "") {
+        complete_query <- paste0("SELECT file, run, sample, nt, date FROM pavian_data WHERE ", taxid_queries, " GROUP BY file")
+        
+      }
+      else if (name_queries != "") {
+        complete_query <- paste0("SELECT file, run, sample, nt, date FROM pavian_data WHERE ", name_queries, " GROUP BY file")
+      }
+      else{
+        complete_query <- paste0("SELECT file, run, sample, nt, date FROM pavian_data WHERE ", taxid_queries, " || ", name_queries, " GROUP BY file")
       }
     }
-    taxid_queries = paste(taxid_queries, collapse=' || ')
-    taxid_queries = paste(name_queries, collapse=' || ')
-    complete_query <- paste0("SELECT file, run, sample, nt, date FROM pavian_data WHERE ", taxid_queries, " GROUP BY file")
-    }
-    test_input <- DBI::dbGetQuery(mydb, complete_query)
+    rv$test_input <- DBI::dbGetQuery(mydb, complete_query)
     output$data_input_table <- DT::renderDataTable({
-      test_input
+      rv$test_input
     })
   })
   
-  output$data_input_table <- DT::renderDataTable({
-    test_input
-    # mtcars
-  })
   
+  # output$data_input_table <- DT::renderDataTable({
+  #   browser()
+  #   test_input
+  #   # mtcars
+  # })
+  # 
   observeEvent(input$datatable_upload, {
-    fnames = test_input[input$data_input_table_rows_selected,]$file
+    fnames = rv$test_input[input$data_input_table_rows_selected,]$file
     base_dir = '/home/***REMOVED***/RProjects/pavian/input/'
     fnames = paste0(base_dir, fnames)
     read_server_directory(fnames)
