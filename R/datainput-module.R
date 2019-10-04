@@ -222,12 +222,12 @@ dataInputModule <- function(input, output, session,
       }
     }
     rv$test_input <- DBI::dbGetQuery(mydb, complete_query)
-    output$data_input_table <- DT::renderDataTable({
-      DT::datatable(rv$test_input, options = list(dom = 'ltp'), filter = list(position = "top")
-      )
-    })
   })
   
+  output$data_input_table <- DT::renderDataTable({
+    DT::datatable(rv$test_input, options = list(dom = 'ltp'), filter = list(position = "top")
+    )
+  })
   
   # output$data_input_table <- DT::renderDataTable({
   #   browser()
