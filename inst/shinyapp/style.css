@@ -115,6 +115,12 @@ button.dt-button:hover, div.dt-button:hover, a.dt-button:hover {
   border: 1px solid #666 !important;
 }
 
+/* Increase width 'Column visibility' button */
+div.dt-button-collection {
+  width:600px !important;
+}
+
+
 .dataTables_wrapper .dataTables_paginate .paginate_button {
   padding: 2px 4px !important;
 }
