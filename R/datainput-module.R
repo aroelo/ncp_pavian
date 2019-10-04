@@ -225,7 +225,7 @@ dataInputModule <- function(input, output, session,
   })
   
   output$data_input_table <- DT::renderDataTable({
-    DT::datatable(rv$test_input, options = list(dom = 'ltp'), filter = list(position = "top")
+    DT::datatable(rv$test_input, options = list(dom = 'ltp', stateSave = FALSE), filter = list(position = "top")
     )
   })
   
