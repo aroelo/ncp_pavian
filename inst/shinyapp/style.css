@@ -1,5 +1,10 @@
 /* Pavian style sheet */
 
+table.dataTable thead th {
+    word-break: break-word;
+    vertical-align: top;
+}
+
 /* reduce space in tables */
 td {
     white-space: nowrap;

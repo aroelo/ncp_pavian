@@ -481,6 +481,8 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
                   extensions = datatable_opts$extensions,
                   class=datatable_opts$class,
                   options = list(
+                    autoWidth = TRUE,
+                    scrollX=T,
                     stateSave = TRUE,
                     columnDefs = get_columnDefs(myDf, nColumnsBefore = 2, nColumnsAfter = 1, sample_files),
                     #autoWidth = TRUE,
@@ -578,6 +580,12 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
               }")
         ))
     }
+    
+    columnDefs[length(columnDefs) + 1] <- 
+      list(list(targets = seq(from=nColumnsBefore+2, to=ncol(myDf)-nColumnsAfter-1), width='200px'))
+    columnDefs[length(columnDefs) + 1] <- 
+      list(list(targets = 1, width='35px'))
+    
     
     # Added by ***REMOVED***, click on sample and use taxid for cgi script. DEPRECATED
     # sample_no_clade = 1
