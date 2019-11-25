@@ -190,11 +190,11 @@ dataInputModule <- function(input, output, session,
   read_error_msg <- reactiveValues(val_pos = NULL, val_neg = NULL)
   
   mydb = DBI::dbConnect(RMySQL::MySQL(), user='root', dbname='pavian', host='127.0.0.1')
-  rv = reactiveValues(test_input = DBI::dbGetQuery(mydb, "SELECT file, run, sample, nt, date FROM pavian_data GROUP BY file"))
+  rv = reactiveValues(test_input = DBI::dbGetQuery(mydb, "SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data GROUP BY file"))
   
   observeEvent(input$search_taxid, {
     if (input$search_taxid == ""){
-      complete_query <- "SELECT file, run, sample, nt, date FROM pavian_data GROUP BY file"
+      complete_query <- "SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data GROUP BY file"
     }
     else{
       search_query_list <- strsplit(input$search_taxid, ", ")
@@ -211,21 +211,31 @@ dataInputModule <- function(input, output, session,
       taxid_queries = paste(taxid_queries, collapse=' || ')
       name_queries = paste(name_queries, collapse=' || ')
       if (taxid_queries != "") {
-        complete_query <- paste0("SELECT file, run, sample, nt, date FROM pavian_data WHERE ", taxid_queries, " GROUP BY file")
+        complete_query <- paste0("SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data WHERE ", taxid_queries, " GROUP BY file")
         
       }
       else if (name_queries != "") {
-        complete_query <- paste0("SELECT file, run, sample, nt, date FROM pavian_data WHERE ", name_queries, " GROUP BY file")
+        complete_query <- paste0("SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data WHERE ", name_queries, " GROUP BY file")
       }
       else{
-        complete_query <- paste0("SELECT file, run, sample, nt, date FROM pavian_data WHERE ", taxid_queries, " || ", name_queries, " GROUP BY file")
+        complete_query <- paste0("SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data WHERE ", taxid_queries, " || ", name_queries, " GROUP BY file")
       }
     }
     rv$test_input <- DBI::dbGetQuery(mydb, complete_query)
   })
   
   output$data_input_table <- DT::renderDataTable({
-    DT::datatable(rv$test_input, options = list(dom = 'ltp', stateSave = FALSE), filter = list(position = "top")
+    DT::datatable(rv$test_input, 
+                  options = list(
+                    order = list(5, 'desc'),
+                    # pageLength = 10,
+                    stateSave = FALSE,
+                    # extensions = datatable_opts$extensions,
+                    # buttons = list('selectAll', 'selectNone'),
+                    # lengthMenu = list(c(10, 15, 25, 50, 100, -1), c('10', '15', '25', '50', '100', 'All')),
+                    dom = 'Bltp'
+                    ), 
+                  filter = list(position = "top")
     )
   })
   
