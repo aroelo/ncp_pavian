@@ -189,7 +189,7 @@ dataInputModule <- function(input, output, session,
   
   read_error_msg <- reactiveValues(val_pos = NULL, val_neg = NULL)
   
-  mydb = DBI::dbConnect(RMySQL::MySQL(), user='root', dbname='pavian', host='127.0.0.1')
+  mydb = DBI::dbConnect(RMySQL::MySQL(), user='root', dbname='pavian', host='***REMOVED***')
   rv = reactiveValues(test_input = DBI::dbGetQuery(mydb, "SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data GROUP BY file"))
   
   observeEvent(input$search_taxid, {
