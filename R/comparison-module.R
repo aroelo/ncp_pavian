@@ -517,7 +517,8 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
               var taxid_string = table.cell(rowIdx,2).data();
               //var taxid = $(taxid_string).text();
               var cell = table.cell(this);
-              var link_str = \'<p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
+              //var link_str = \'<p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
+              var link_str = \'<p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
               if (colName != "Name" && colName != "Rank" && colName != "TID"&& colName != "Max" && colName != "Lineage"){
                 //console.log("Colidx: " + colIdx);
                 //console.log("Colname: " + colName);
@@ -583,6 +584,8 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     
     columnDefs[length(columnDefs) + 1] <- 
       list(list(targets = seq(from=nColumnsBefore+2, to=ncol(myDf)-nColumnsAfter-1), width='200px'))
+    columnDefs[length(columnDefs) + 1] <- 
+      list(list(targets = seq(from=nColumnsBefore, to=nColumnsBefore+2), width='150px'))
     columnDefs[length(columnDefs) + 1] <- 
       list(list(targets = 1, width='35px'))
     
