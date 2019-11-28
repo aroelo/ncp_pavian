@@ -43,16 +43,16 @@ sampleModuleUI_function <- function(ns, samples, selected_sample = NULL) {
   }
   shiny::tagList(
     fluidRow(
-      div(class="col-lg-5 col-md-6 col-sm-6 col-xs-12",
-          div(class="col-lg-4 col-md-5 col-sm-12 lessPadding", style="font-size: 18px;", HTML("<label>Select sample<label>")),
-          div(class="col-lg-8 col-md-7 col-sm-12 lessPadding", style="font-size: 18px;",
+      div(class="col-lg-9 col-md-9 col-sm-9 col-xs-12",
+          div(class="col-lg-3 col-md-4 col-sm-12 lessPadding", style="font-size: 18px;", HTML("<label>Select sample<label>")),
+          div(class="col-lg-9 col-md-8 col-sm-12 lessPadding", style="font-size: 18px;",
               selectInput(
                 ns('sample_selector'), label = NULL,
                 choices = samples, selected = selected_sample,
                 multiple = getOption("pavian.devel", FALSE), selectize = TRUE,
                 width = '100%'
               ))),
-      div(class="col-lg-7 col-md-6 col-sm-6 col-xs-12",
+      div(class="col-lg-3 col-md-3 col-sm-3 col-xs-12",
           div(class="col-lg-2 col-md-4 col-sm-12 lessPadding", HTML("<label>Filter taxa</label>")),
           div(class="col-lg-10 col-md-8 col-sm-12 lessPadding",
               selectizeInput(
@@ -240,7 +240,7 @@ sampleModule <- function(input, output, session, sample_data, reports,
     
     shiny::tagList(
       "Number of reads across all samples ","(",downloadLink(ns("save_plot1"),"PDF"),")",
-      plotOutput(ns("plot1"), height=paste0(max(200,input$height/1.5-75),"px"), click = ns("plot_click")),
+      plotOutput(ns("plot1"), height=paste0(max(500,input$height),"px"), click = ns("plot_click")),
       #"Percent of reads (after filtering) (",downloadLink(ns("save_plot2"),"PDF"),")",
       #plotOutput(ns("plot2"), height=paste0(max(200,input$height/2-75),"px"), click = ns("plot_click")),
       "Legend: The turqoise bar shows the number of reads that are identified at the specific taxon; the orange bar shows the number of reads identified at children of the specified taxon.",
@@ -255,7 +255,8 @@ sampleModule <- function(input, output, session, sample_data, reports,
     selected_taxon <- hover_plots$taxon
     taxIndex <- which(tax_data()$name == selected_taxon)[1]
     clade_reads_m <- na0(clade_reads()[taxIndex, ]) - na0(taxon_reads()[taxIndex,])
-    short_name <- substr(sample_data()$Name, 1, 10)
+    # short_name <- substr(sample_data()$Name, 1, 10)
+    short_name <- sample_data()$Name
     for (si in unique(short_name)) {
       sel <- si %in% short_name
       if (sum(sel) > 1) {

@@ -13,7 +13,8 @@
 #'
 #' @export
 runApp <- function(cache_dir = "cache",
-                   server_dir = Sys.glob("~"),
+                   #Change default directory of input on 'use data on server'
+                   server_dir = Sys.glob("/home/***REMOVED***/RProjects/pavian/input"),
                    server_access = TRUE,
                    load_example_data = FALSE,
                    load_server_directory = FALSE,

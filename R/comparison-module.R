@@ -468,7 +468,11 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     dataframe_container_and_formatFunction <- isolate({summarized_report_df()})
     myDf <- dataframe_container_and_formatFunction[[1]]
     myContainer <- dataframe_container_and_formatFunction[[2]]
-    
+    sample_files <- vector(mode="list", length=nrow(sample_data()))
+    names(sample_files) <- sample_data()[["Name"]]
+    for (i in 1:nrow(sample_data())) {
+      sample_files[i] = sample_data()[["ReportFile"]][i]
+    }
     #filtered_clade_reads()
     DT::datatable(myDf,
                   container=myContainer,
@@ -477,8 +481,10 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
                   extensions = datatable_opts$extensions,
                   class=datatable_opts$class,
                   options = list(
+                    autoWidth = TRUE,
+                    scrollX=T,
                     stateSave = TRUE,
-                    columnDefs = get_columnDefs(myDf, nColumnsBefore = 2, nColumnsAfter = 1),
+                    columnDefs = get_columnDefs(myDf, nColumnsBefore = 2, nColumnsAfter = 1, sample_files),
                     #autoWidth = TRUE,
                     buttons = common_buttons(base_set_name(), "matrix-view"),
                     drawCallback = drawCallback,
@@ -499,17 +505,57 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
               Shiny.onInputChange("comparison-double_clicked_row", data[data.length - 1] + ">" +data1)
               //alert("You clicked on "+data[0]+"\'s row");
               }
+              
               )
-              ')
+              table.on("mouseover.dt", "tbody td", function (event) {
+              var colIdx = table.cell(this).index().column;
+              var title = table.column(colIdx).header();
+              var colName = $(title).html();
+
+              var rowIdx = table.cell(this).index().row;
+              
+              var taxid_string = table.cell(rowIdx,2).data();
+              //var taxid = $(taxid_string).text();
+              var cell = table.cell(this);
+              //var link_str = \'<p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
+              var link_str = \'<p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
+              if (colName != "Name" && colName != "Rank" && colName != "TID"&& colName != "Max" && colName != "Lineage"){
+                //console.log("Colidx: " + colIdx);
+                //console.log("Colname: " + colName);
+                //console.log("Rowidx: " + rowIdx);
+                //console.log("Taxid: " + taxid);
+                //console.log("Taxid_string: " + taxid_string);
+                //console.log("Cell: " + cell);
+                //console.log("Cell var: " + $(cell));
+                //console.log(link_str);
+                $(cell).qtip({
+                  overwrite: false,
+                  content: link_str,
+                  position: {
+                    my: "right center",
+                    at: "center",
+                    target: "event",
+                  },
+                  show: {
+                    event: event.type,
+                    ready: true,
+                    solo: true,
+                  },
+                  hide: {
+                    fixed: true
+                  }
+                }, event); // Note we passed the event as the second argument. Always do this when binding within an event handler!
+                
+              }
+                })')
     ) %>% formatDT(nSamples = nrow(sample_data()),
                    numericColumns = numericColumns(),
                    statsColumns = input$opt_statsColumns,
                    nColumnsBefore = ncol(tax_data()) - 1,
                    groupSampleColumns = input$opt_groupSamples)
   })
-
   
-  get_columnDefs <- function(myDf, nColumnsBefore, nColumnsAfter) {
+  get_columnDefs <- function(myDf, nColumnsBefore, nColumnsAfter, sample_files) {
     zero_col <- ifelse(show_rownames, 0, 1)
     
     columnDefs <- list(
@@ -535,6 +581,43 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
               }")
         ))
     }
+    
+    columnDefs[length(columnDefs) + 1] <- 
+      list(list(targets = seq(from=nColumnsBefore+2, to=ncol(myDf)-nColumnsAfter-1), width='200px'))
+    columnDefs[length(columnDefs) + 1] <- 
+      list(list(targets = seq(from=nColumnsBefore, to=nColumnsBefore+2), width='150px'))
+    columnDefs[length(columnDefs) + 1] <- 
+      list(list(targets = 1, width='35px'))
+    
+    
+    # Added by ***REMOVED***, click on sample and use taxid for cgi script. DEPRECATED
+    # sample_no_clade = 1
+    # sample_no_taxon = 1
+    # for (colname in colnames(myDf)) {
+    #   if (endsWith(colname, "Reads")){
+    #     if (endsWith(colname, "cladeReads")){
+    #       bam_file = sub("\\.[^.]*$", ".bam", sample_files[sample_no_clade])
+    #       sample_no_clade = sample_no_clade + 1
+    #     }
+    #     if (endsWith(colname, "taxonReads")){
+    #       bam_file = sub("\\.[^.]*$", ".bam", sample_files[sample_no_taxon])
+    #       sample_no_taxon = sample_no_taxon + 1
+    #     }
+    #     columnDefs[length(columnDefs) + 1] <-
+    #       list(list(targets = which(colnames(myDf) == colname) - zero_col,
+    #                 render = htmlwidgets::JS(paste("function(data, type, row, meta) {
+    #               bam_file = '", bam_file ,"'
+    #               console.log(bam_file)
+    #               taxid = row[2]
+    #               if (data > 0){
+    #                 return '<a href=\"http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=' + taxid + '&sample=' + bam_file + '\" target=\"_blank\">' + data + '</a>';
+    #               } else{
+    #                 return '';
+    #               }
+    #           }", sep=""))
+    #       ))
+    #   }
+    # }
     
     columnDefs
   }

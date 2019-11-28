@@ -3,6 +3,7 @@
 library(shiny)
 library(rhandsontable)
 library(shinyFileTree)
+library(RMySQL)
 
 serverDataPanel <- function(ns) {
   tabPanel(
@@ -62,6 +63,23 @@ uploadFilePanel <- function(ns) {
            ))
 }
 
+datatablePanel <- function(ns) {
+  req(requireNamespace("shinyWidgets"))
+  tabPanel("Use datatable",
+           shinyWidgets::searchInput(
+             inputId = ns("search_taxid"), label = "Search for taxid and/or organism name.",
+             value = "",
+             placeholder = "e.g: 12271, 12274",
+             btnSearch = icon("search"),
+             btnReset = icon("remove"),
+             width = "450px"
+           ),
+           verbatimTextOutput(outputId = ns('res')),
+           DT::dataTableOutput(ns('data_input_table')),
+           actionButton(ns("datatable_upload"), label = "Load selected datasets")
+           )
+}
+
 #' UI part of pavian data input module
 #'
 #' @param id Namespace ID.
@@ -101,6 +119,7 @@ dataInputModuleUI <- function(id,
         selected = start_with,
         uploadFilePanel(ns),
         serverDataPanel(ns),
+        datatablePanel(ns),
         exampleDataPanel(ns)
       )
     } else {
@@ -109,6 +128,7 @@ dataInputModuleUI <- function(id,
         title = "Data Source",
         selected = start_with,
         uploadFilePanel(ns),
+        datatablePanel(ns),
         exampleDataPanel(ns)
       )
     }
@@ -168,6 +188,69 @@ dataInputModule <- function(input, output, session,
   #shinyFiles::shinyDirChoose(input, ns('search_data_dir'), roots = server_dirs, filetypes = c(""))
   
   read_error_msg <- reactiveValues(val_pos = NULL, val_neg = NULL)
+  
+  mydb = DBI::dbConnect(RMySQL::MySQL(), user='root', dbname='pavian', host='***REMOVED***')
+  rv = reactiveValues(test_input = DBI::dbGetQuery(mydb, "SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data GROUP BY file"))
+  
+  observeEvent(input$search_taxid, {
+    if (input$search_taxid == ""){
+      complete_query <- "SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data GROUP BY file"
+    }
+    else{
+      search_query_list <- strsplit(input$search_taxid, ", ")
+      taxid_queries <- list()
+      name_queries <- list()
+      for (item in search_query_list){
+        if (!is.na(as.numeric(item))){
+          taxid_queries <- c(taxid_queries, paste0("organism_taxid = ", item))
+        }
+        else{
+          name_queries <- c(name_queries, paste0("organism_name = '", item,"'"))
+        }
+      }
+      taxid_queries = paste(taxid_queries, collapse=' || ')
+      name_queries = paste(name_queries, collapse=' || ')
+      if (taxid_queries != "") {
+        complete_query <- paste0("SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data WHERE ", taxid_queries, " GROUP BY file")
+        
+      }
+      else if (name_queries != "") {
+        complete_query <- paste0("SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data WHERE ", name_queries, " GROUP BY file")
+      }
+      else{
+        complete_query <- paste0("SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data WHERE ", taxid_queries, " || ", name_queries, " GROUP BY file")
+      }
+    }
+    rv$test_input <- DBI::dbGetQuery(mydb, complete_query)
+  })
+  
+  output$data_input_table <- DT::renderDataTable({
+    DT::datatable(rv$test_input, 
+                  options = list(
+                    order = list(5, 'desc'),
+                    # pageLength = 10,
+                    stateSave = FALSE,
+                    # extensions = datatable_opts$extensions,
+                    # buttons = list('selectAll', 'selectNone'),
+                    # lengthMenu = list(c(10, 15, 25, 50, 100, -1), c('10', '15', '25', '50', '100', 'All')),
+                    dom = 'Bltp'
+                    ), 
+                  filter = list(position = "top")
+    )
+  })
+  
+  # output$data_input_table <- DT::renderDataTable({
+  #   browser()
+  #   test_input
+  #   # mtcars
+  # })
+  # 
+  observeEvent(input$datatable_upload, {
+    fnames = rv$test_input[input$data_input_table_rows_selected,]$file
+    base_dir = '/home/***REMOVED***/RProjects/pavian/input/'
+    fnames = paste0(base_dir, fnames)
+    read_server_directory(fnames)
+  })
   
   output$upload_info <- renderUI({
     req(!is.null(read_error_msg$val_pos) ||
@@ -246,8 +329,13 @@ dataInputModule <- function(input, output, session,
         need(res$sample_sets, message = "No sample sets available. Set a different directory")
       )
       
+      # c(res$sample_sets, res$sample_sets[!names(res$sample_sets) %in% names(sample_sets_val)])
+      if (names(res$sample_sets) == 'Server files') {sample_sets$val = res$sample_sets}
+      
+      else{
       sample_sets$val <-
         c(sample_sets_val, res$sample_sets[!names(res$sample_sets) %in% names(sample_sets_val)])
+      }
       sample_sets$selected <- names(res$sample_sets)[1]
       return(TRUE)
     }
@@ -307,6 +395,7 @@ dataInputModule <- function(input, output, session,
   observeEvent(input$btn_read_tree_dirs, {
     fnames <- input$file_tree_selected
     fnames <- sub(" \\([0-9]+ f[io].*\\)$", "", fnames)
+
     if (all(startsWith(fnames, fnames[1]))) {
       fnames <- fnames[1]
     }

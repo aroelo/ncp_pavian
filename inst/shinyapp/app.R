@@ -1,16 +1,5 @@
-library(reticulate)
-library(shiny)
-use_condaenv("pavian")
-
-
-
-if(!require(pavian)){
-  options(repos = c(CRAN = "http://cran.rstudio.com"))
-  #runUrl("http://gitlab.naktuinbouw.net/bioinformatics/pavian/blob/master/pavian_0.8.4.tar.gz",filetype=".tar.gz.")
-  #download.file("http://gitlab.naktuinbouw.net/bioinformatics/pavian/raw/master/pavian_0.8.4.tar.gz", "/tmp/pavian.tar.gz")
-  #install.packages("/tmp/pavian.tar.gz", repos = NULL, type="source")
-  library(pavian)
-}
+detach("package:pavian", unload=TRUE)
+library(pavian, lib.loc = "/home/shiny/miniconda3/envs/pavian/lib/R/dev-library")
 
 if (!require(Rsamtools)) {
   source("https://bioconductor.org/biocLite.R")
@@ -51,4 +40,5 @@ options(
   )
 )
 
-shiny::shinyApp(pavian::dashboardUI, pavian::pavianServer, enableBookmarking="server")
+pavian::runApp()
+# shiny::shinyApp(pavian::dashboardUI, pavian::pavianServer, enableBookmarking="server")

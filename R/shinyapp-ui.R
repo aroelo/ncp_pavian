@@ -16,7 +16,7 @@ dashboardUI <- function(request) {
                                         tags$a(href="#",
                                                #target="_blank",
                                                style = "font-size: 20px;",
-                                               "Pavian metagenomics data explorer")
+                                               "Dev version 28-11. Pavian metagenomics data explorer")
                                 ),
                                 #tags$li(class = "dropdown",
                                 #        tags$a(href="https://ccb.jhu.edu", target="_blank",
@@ -89,6 +89,8 @@ dashboardUI <- function(request) {
                 dashboardBody(
                   shinyjs::useShinyjs(),
                   tags$head(includeCSS(system.file("shinyapp", "style.css", package="pavian"))),
+                  tags$head(includeCSS(system.file("shinyapp", "jquery.qtip.css", package="pavian"))),
+                  tags$head(includeScript(system.file("shinyapp", "jquery.qtip.js", package="pavian"))),
                   tags$script(HTML("$('body').addClass('sidebar-mini');")),
                   tabItems(
                     tabItem("Home",
