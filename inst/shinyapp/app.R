@@ -1,15 +1,5 @@
-library(reticulate)
-library(shiny)
-library(stringr)
-use_condaenv("pavian")
-# library(pavian, lib.loc="/home/shiny/miniconda3/envs/pavian/lib/R/dev-library")
-library(pavian, lib.loc="/home/shiny/miniconda3/envs/pavian/lib/R/dev-library")
-
-if(!require(pavian)){
-  options(repos = c(CRAN = "http://cran.rstudio.com"))
-  install.packages(pavian, lib="/home/shiny/miniconda3/envs/pavian/lib/R/dev-library", repos = NULL, type="source")
-  library(pavian, lib.loc="/home/shiny/miniconda3/envs/pavian/lib/R/dev-library")
-}
+detach("package:pavian", unload=TRUE)
+library(pavian, lib.loc = "/home/shiny/miniconda3/envs/pavian/lib/R/dev-library")
 
 if (!require(Rsamtools)) {
   source("https://bioconductor.org/biocLite.R")
