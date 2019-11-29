@@ -105,7 +105,8 @@ comparisonModuleUI_function <- function(ns) {
         div(style="display:inline-block",
             shinyWidgets::checkboxGroupButtons(inputId = ns("opt_numericColumns2"),  label = NULL, 
 				   choices = c("Reads"="identity", "%"="%",
-					       "Rank"="rank","Z-score (reads)"="z-score","Z-score (%)"="% z-score"), 
+					       "Rank"="rank","Z-score (reads)"="z-score","Z-score (%)"="% z-score",
+					       "% Identity"="% map-identity"), 
                                                justified = FALSE, 
                                                status = "primary",
                                                checkIcon = list(yes = icon("ok", lib = "glyphicon")), 
@@ -164,6 +165,7 @@ na0 <- function(x) {
 #' @return Comparison module server functionality
 #' @export
 comparisonModule <- function(input, output, session, sample_data, tax_data, clade_reads, taxon_reads,
+                             clade_identity, taxon_identity,
                              datatable_opts = NULL, filter_func = NULL, tax_data_add = NULL, search = NULL) {
   
   output$UI <- renderUI({
@@ -399,8 +401,9 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     if (input$opt_taxRank == "-" && input$opt_hide_zero_taxa) {
       td <- my_tax_data()[sel_rows,,drop=F]
     }
-    one_df(filtered_clade_reads()[sel_rows,,drop=F], taxon_reads()[sel_rows,,drop=F], td, 
-           sample_data(),
+    one_df(filtered_clade_reads()[sel_rows,,drop=F], taxon_reads()[sel_rows,,drop=F], 
+           clade_identity()[sel_rows,,drop=F], taxon_identity()[sel_rows,,drop=F],
+           td, sample_data(),
            numericColumns = numericColumns(), statsColumns = input$opt_statsColumns, sum_reads = NULL,
            groupSampleColumns = input$opt_groupSamples, specific_tax_rank = input$opt_taxRank != "-",
            min_scale_reads = get_input("opt_min_scale_reads"), min_scale_percent = get_input("opt_min_scale_percent"))
@@ -703,7 +706,14 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
       columns <- col_seq(i)
       #rg <- range(dt[[1]]$data[,columns], na.rm = TRUE)
       #brks <- seq(from=rg[1],to=rg[2], length.out=20)
-      brks <- unique(stats::quantile(dt[[1]]$data[,columns], probs = cumsum(1/2^(1:20)), na.rm =TRUE))
+      # Include the NA's which were actually zeroes. 
+      column_vector <- dt[[1]]$data[,columns]
+      column_vector[is.na(column_vector)] <- 0
+      # Below is an attempt to shift the colour gradient. Right now it doesn't work well if 
+      # there are a couple of high percentages and one zero. However, when using probs = seq(0,1,length.out=20),
+      # it doesn't work well when there is a lot of 'high' numbers. 
+      # brks <- unique(stats::quantile(column_vector, probs = seq(0,1,length.out=20), na.rm =TRUE))
+      brks <- unique(stats::quantile(column_vector, probs = cumsum(1/2^(1:20)), na.rm =TRUE))
       clrs <- round(seq(0, 1, length.out = length(brks) + 1),4) %>% {sprintf("rgba(%s,%s)", cols[i],.)}
       dt <- dt %>% DT::formatStyle(columns, backgroundColor = DT::styleInterval(brks, clrs))
     }
