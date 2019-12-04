@@ -99,7 +99,7 @@ pavianServer <- function(input, output, session) {
   })
 
   # Trigger bookmarking
-  setBookmarkExclude("bookmark_btn")
+  setBookmarkExclude(c("bookmark_btn", "tabs"))
   observeEvent(input$bookmark_btn, {
     session$doBookmark()
   })
@@ -365,4 +365,14 @@ pavianServer <- function(input, output, session) {
       
     }
   )
+  
+  onBookmark(function(state) {
+    state$values$selected <- input$tabs
+  })
+  
+  ## Exclude 'tabs' from bookmark and add here. Otherwise datatable is not rendered/loaded properly
+  onRestored(function(state) {
+    tabs <- state$values$selected
+    updateTabItems(session, "tabs", selected = tabs)
+  })
 }

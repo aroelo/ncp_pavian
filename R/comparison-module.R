@@ -167,7 +167,6 @@ na0 <- function(x) {
 comparisonModule <- function(input, output, session, sample_data, tax_data, clade_reads, taxon_reads,
                              clade_identity, taxon_identity,
                              datatable_opts = NULL, filter_func = NULL, tax_data_add = NULL, search = NULL) {
-  
   output$UI <- renderUI({
     req(sample_data())
     comparisonModuleUI_function(session$ns)
@@ -207,7 +206,8 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     }
   })
 
-  observeEvent(input$btn_x_lin, { taxLineage$val <- NULL } )
+  observeEvent(input$btn_x_lin, { 
+    taxLineage$val <- NULL } )
 
   observeEvent(input$btn_lin_1, { taxLineage$val <- taxLineage$val[1] })
   observeEvent(input$btn_lin_2, { taxLineage$val <- taxLineage$val[1:2] })
@@ -319,6 +319,13 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
   
   
   shown_rows <- reactive({
+    # shown_rows_vals_res <- isolate(shown_rows_vals$res)
+    # if (!is.null(shown_rows_vals$res)){
+    #   res <- shown_rows_vals$res
+    #   shown_rows_vals$res <- NULL
+    #   return(res)
+    # }
+    # 
     clade_reads <- filtered_clade_reads()
     res <- !apply(is.na(clade_reads),1,all) &
            filter_taxa(tax_data(),
@@ -416,17 +423,23 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
   })
   
   ## Different DT version handle namespaces differently. Make sure it works in all of them.
-  dt_proxy <- DT::dataTableProxy(session$ns('dt_samples_comparison'))
-  dt_proxy1 <- DT::dataTableProxy('dt_samples_comparison')
+  # dt_proxy <- DT::dataTableProxy(session$ns('dt_samples_comparison'))
+  # dt_proxy1 <- DT::dataTableProxy('dt_samples_comparison', session = shiny::getDefaultReactiveDomain())
+  dt_proxy1 <- DT::dataTableProxy('dt_samples_comparison', session = shiny::getDefaultReactiveDomain())
+  
   observe({
     ## replaceData does not work with modules, currently
     ##  see https://github.com/rstudio/DT/issues/359
     req(summarized_report_df())
-    DT::dataTableAjax(session, summarized_report_df()[[1]], rownames = FALSE, outputId = 'dt_samples_comparison')
-    DT::dataTableAjax(session, summarized_report_df()[[1]], rownames = FALSE,
-                      outputId = session$ns('dt_samples_comparison'))
-    DT::reloadData(dt_proxy, resetPaging=TRUE, clearSelection = "row")
-    DT::reloadData(dt_proxy1, resetPaging=TRUE, clearSelection = "row")
+    # DT::replaceData(dt_proxy, summarized_report_df()[[1]], rownames = FALSE, resetPaging = TRUE, clearSelection = "row")
+    DT::replaceData(dt_proxy1, summarized_report_df()[[1]], rownames = FALSE, resetPaging = TRUE, clearSelection = "row")
+    
+    # 
+    # DT::dataTableAjax(session, summarized_report_df()[[1]], rownames = FALSE, outputId = 'dt_samples_comparison')
+    # DT::dataTableAjax(session, summarized_report_df()[[1]], rownames = FALSE,
+    #                   outputId = session$ns('dt_samples_comparison'))
+    # DT::reloadData(dt_proxy, resetPaging=TRUE, clearSelection = "row")
+    # DT::reloadData(dt_proxy1, resetPaging=TRUE, clearSelection = "row")
   })
 
   observeEvent(input$btn_filter_row,  {
@@ -507,30 +520,19 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
               var data1=data[0].replace(/.*>/,"")
               Shiny.onInputChange("comparison-double_clicked_row", data[data.length - 1] + ">" +data1)
               //alert("You clicked on "+data[0]+"\'s row");
-              }
-              
-              )
+              })
+
               table.on("mouseover.dt", "tbody td", function (event) {
               var colIdx = table.cell(this).index().column;
               var title = table.column(colIdx).header();
               var colName = $(title).html();
-
               var rowIdx = table.cell(this).index().row;
-              
               var taxid_string = table.cell(rowIdx,2).data();
-              //var taxid = $(taxid_string).text();
               var cell = table.cell(this);
+
               //var link_str = \'<p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
               var link_str = \'<p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
               if (colName != "Name" && colName != "Rank" && colName != "TID"&& colName != "Max" && colName != "Lineage"){
-                //console.log("Colidx: " + colIdx);
-                //console.log("Colname: " + colName);
-                //console.log("Rowidx: " + rowIdx);
-                //console.log("Taxid: " + taxid);
-                //console.log("Taxid_string: " + taxid_string);
-                //console.log("Cell: " + cell);
-                //console.log("Cell var: " + $(cell));
-                //console.log(link_str);
                 $(cell).qtip({
                   overwrite: false,
                   content: link_str,
@@ -557,6 +559,8 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
                    nColumnsBefore = ncol(tax_data()) - 1,
                    groupSampleColumns = input$opt_groupSamples)
   })
+  
+  dt_proxy1 <- DT::dataTableProxy('dt_samples_comparison', session = shiny::getDefaultReactiveDomain())
   
   get_columnDefs <- function(myDf, nColumnsBefore, nColumnsAfter, sample_files) {
     zero_col <- ifelse(show_rownames, 0, 1)
@@ -720,5 +724,4 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     
     dt
   }
-  
 }

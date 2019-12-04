@@ -310,6 +310,11 @@ dataInputModule <- function(input, output, session,
   read_server_directory2 <-
     function(data_dir, sample_set_name = NULL, ...) {
       sample_sets_val <- isolate(sample_sets$val)
+      browser()
+      # Dirty fix, added to make bookmark functionality work
+      if (any(file.info(data_dir)$isdir) & any(names(sample_sets_val) == "Server files")){
+        data_dir <- sample_sets_val$`Server files`$ReportFilePath
+      }
       res <-
         read_server_directory1(data_dir,
                                sample_set_name = sample_set_name,
@@ -612,6 +617,7 @@ dataInputModule <- function(input, output, session,
   })
   
   onRestore(function(state) {
+    browser()
     sample_sets$val <- state$values$sample_sets_val
   })
   
