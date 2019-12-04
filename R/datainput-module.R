@@ -161,7 +161,7 @@ dataInputModule <- function(input, output, session,
                             load_example_data = getOption("pavian.load_example_data", default = FALSE),
                             pavian_options = NULL) {
   
-  sample_sets <- reactiveValues(val=NULL, selected=NULL) # val is the list of all sample sets
+  sample_sets <- reactiveValues(val=NULL, selected=NULL, bookmark=FALSE) # val is the list of all sample sets
   sample_sets_selected <- NULL # selected is just used to initialize the radioButtons in the module
   
   ns <- session$ns
@@ -310,10 +310,13 @@ dataInputModule <- function(input, output, session,
   read_server_directory2 <-
     function(data_dir, sample_set_name = NULL, ...) {
       sample_sets_val <- isolate(sample_sets$val)
-      browser()
+      sample_sets_bookmark <- isolate(sample_sets$bookmark)
       # Dirty fix, added to make bookmark functionality work
-      if (any(file.info(data_dir)$isdir) & any(names(sample_sets_val) == "Server files")){
-        data_dir <- sample_sets_val$`Server files`$ReportFilePath
+      if (sample_sets_bookmark){
+        if (any(names(sample_sets_val) == "Server files")){
+          data_dir <- sample_sets_val$`Server files`$ReportFilePath
+        }
+        sample_sets$bookmark <- FALSE
       }
       res <-
         read_server_directory1(data_dir,
@@ -614,11 +617,13 @@ dataInputModule <- function(input, output, session,
   
   onBookmark(function(state) {
     state$values$sample_sets_val <- sample_sets$val
+    state$values$sample_sets_bookmark <- TRUE
+    
   })
   
   onRestore(function(state) {
-    browser()
     sample_sets$val <- state$values$sample_sets_val
+    sample_sets$bookmark <- state$values$sample_sets_bookmark
   })
   
   return(sample_sets)

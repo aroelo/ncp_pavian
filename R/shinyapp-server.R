@@ -99,6 +99,7 @@ pavianServer <- function(input, output, session) {
   })
 
   # Trigger bookmarking
+  # Exclude 'tabs' and restore selected tab later. Otherwise datatable in comparison tab does not get rendered properly.
   setBookmarkExclude(c("bookmark_btn", "tabs"))
   observeEvent(input$bookmark_btn, {
     session$doBookmark()
