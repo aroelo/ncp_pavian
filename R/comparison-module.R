@@ -473,6 +473,12 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     for (i in 1:nrow(sample_data())) {
       sample_files[i] = sample_data()[["ReportFile"]][i]
     }
+    js_dict <-NULL
+    for (i in seq(1, nrow(sample_data()))) {
+      key_value<- paste0(sample_data()$Name[i], "\":\"", sample_data()$ReportFilePath[i])
+      js_dict <- paste0(js_dict, key_value, sep = "\",\n\"")
+    }
+    js_dict <- paste0("\"",substr(js_dict, 0, nchar(js_dict)-3))
     #filtered_clade_reads()
     DT::datatable(myDf,
                   container=myContainer,
@@ -499,6 +505,7 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
                     )
                   ),
                   callback = htmlwidgets::JS('
+              var pavian_files_dict = {', js_dict, '};
               table.on("dblclick.dt","tr", function() {
               var data=table.row(this).data();
               var data1=data[0].replace(/.*>/,"")
@@ -511,23 +518,15 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
               var colIdx = table.cell(this).index().column;
               var title = table.column(colIdx).header();
               var colName = $(title).html();
-
               var rowIdx = table.cell(this).index().row;
-              
               var taxid_string = table.cell(rowIdx,2).data();
-              //var taxid = $(taxid_string).text();
               var cell = table.cell(this);
+              var pavian_file = pavian_files_dict[colName];
+
               //var link_str = \'<p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
-              var link_str = \'<p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
+              //var link_str = \'<p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
+              var link_str = \'<p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
               if (colName != "Name" && colName != "Rank" && colName != "TID"&& colName != "Max" && colName != "Lineage"){
-                //console.log("Colidx: " + colIdx);
-                //console.log("Colname: " + colName);
-                //console.log("Rowidx: " + rowIdx);
-                //console.log("Taxid: " + taxid);
-                //console.log("Taxid_string: " + taxid_string);
-                //console.log("Cell: " + cell);
-                //console.log("Cell var: " + $(cell));
-                //console.log(link_str);
                 $(cell).qtip({
                   overwrite: false,
                   content: link_str,
