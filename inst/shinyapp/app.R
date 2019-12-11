@@ -1,5 +1,5 @@
 detach("package:pavian", unload=TRUE)
-library(pavian, lib.loc = "/home/shiny/miniconda3/envs/pavian/lib/R/dev-library")
+library(pavian, lib.loc = "/usr/local/lib/R/site-library")
 
 if (!require(Rsamtools)) {
   source("https://bioconductor.org/biocLite.R")
