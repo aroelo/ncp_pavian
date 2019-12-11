@@ -99,7 +99,8 @@ pavianServer <- function(input, output, session) {
   })
 
   # Trigger bookmarking
-  setBookmarkExclude("bookmark_btn")
+  # Exclude 'tabs' and restore selected tab later. Otherwise datatable in comparison tab does not get rendered properly.
+  setBookmarkExclude(c("bookmark_btn", "tabs"))
   observeEvent(input$bookmark_btn, {
     session$doBookmark()
   })
@@ -278,12 +279,15 @@ pavianServer <- function(input, output, session) {
                  max = length(reports()), { 
       merge_reports2(reports(), col_names = sample_data()[["Name"]], update_progress=T) })
   })
+  
   tax_data <- reactive({ summarized_report()[[1]] })
   clade_reads <- reactive({ summarized_report()[[2]] })
   taxon_reads <- reactive({ summarized_report()[[3]] })
+  clade_identity <- reactive({ summarized_report()[[4]] })
+  taxon_identity <- reactive({ summarized_report()[[5]] })
   
   callModule(comparisonModule, "comparison", sample_data, tax_data, clade_reads, taxon_reads,
-             reports, datatable_opts = datatable_opts)#, search = sample_module_selected)
+             clade_identity, taxon_identity, reports, datatable_opts = datatable_opts)#, search = sample_module_selected)
   
   #####################
   ## Alignment module
@@ -362,4 +366,14 @@ pavianServer <- function(input, output, session) {
       
     }
   )
+  
+  onBookmark(function(state) {
+    state$values$selected <- input$tabs
+  })
+  
+  ## Exclude 'tabs' from bookmark and add here. Otherwise datatable is not rendered/loaded properly
+  onRestored(function(state) {
+    tabs <- state$values$selected
+    updateTabItems(session, "tabs", selected = tabs)
+  })
 }

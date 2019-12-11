@@ -105,7 +105,8 @@ comparisonModuleUI_function <- function(ns) {
         div(style="display:inline-block",
             shinyWidgets::checkboxGroupButtons(inputId = ns("opt_numericColumns2"),  label = NULL, 
 				   choices = c("Reads"="identity", "%"="%",
-					       "Rank"="rank","Z-score (reads)"="z-score","Z-score (%)"="% z-score"), 
+					       "Rank"="rank","Z-score (reads)"="z-score","Z-score (%)"="% z-score",
+					       "% Identity"="% map-identity"), 
                                                justified = FALSE, 
                                                status = "primary",
                                                checkIcon = list(yes = icon("ok", lib = "glyphicon")), 
@@ -113,7 +114,7 @@ comparisonModuleUI_function <- function(ns) {
         div(style="display:inline-block",
             shinyWidgets::checkboxGroupButtons(inputId = ns("opt_numericColumns1"), 
                 label = NULL, choices = c("Clade"="cladeReads", "Taxon"="taxonReads"), 
-                selected = "cladeReads",
+                selected = "taxonReads",
                 status = "warning")),
         div(style="display:inline-block",selectizeInput(
             ns('contaminant_selector_clade'),
@@ -164,8 +165,8 @@ na0 <- function(x) {
 #' @return Comparison module server functionality
 #' @export
 comparisonModule <- function(input, output, session, sample_data, tax_data, clade_reads, taxon_reads,
+                             clade_identity, taxon_identity,
                              datatable_opts = NULL, filter_func = NULL, tax_data_add = NULL, search = NULL) {
-  
   output$UI <- renderUI({
     req(sample_data())
     comparisonModuleUI_function(session$ns)
@@ -205,7 +206,8 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     }
   })
 
-  observeEvent(input$btn_x_lin, { taxLineage$val <- NULL } )
+  observeEvent(input$btn_x_lin, { 
+    taxLineage$val <- NULL } )
 
   observeEvent(input$btn_lin_1, { taxLineage$val <- taxLineage$val[1] })
   observeEvent(input$btn_lin_2, { taxLineage$val <- taxLineage$val[1:2] })
@@ -317,6 +319,13 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
   
   
   shown_rows <- reactive({
+    # shown_rows_vals_res <- isolate(shown_rows_vals$res)
+    # if (!is.null(shown_rows_vals$res)){
+    #   res <- shown_rows_vals$res
+    #   shown_rows_vals$res <- NULL
+    #   return(res)
+    # }
+    # 
     clade_reads <- filtered_clade_reads()
     res <- !apply(is.na(clade_reads),1,all) &
            filter_taxa(tax_data(),
@@ -399,8 +408,9 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     if (input$opt_taxRank == "-" && input$opt_hide_zero_taxa) {
       td <- my_tax_data()[sel_rows,,drop=F]
     }
-    one_df(filtered_clade_reads()[sel_rows,,drop=F], taxon_reads()[sel_rows,,drop=F], td, 
-           sample_data(),
+    one_df(filtered_clade_reads()[sel_rows,,drop=F], taxon_reads()[sel_rows,,drop=F], 
+           clade_identity()[sel_rows,,drop=F], taxon_identity()[sel_rows,,drop=F],
+           td, sample_data(),
            numericColumns = numericColumns(), statsColumns = input$opt_statsColumns, sum_reads = NULL,
            groupSampleColumns = input$opt_groupSamples, specific_tax_rank = input$opt_taxRank != "-",
            min_scale_reads = get_input("opt_min_scale_reads"), min_scale_percent = get_input("opt_min_scale_percent"))
@@ -413,17 +423,22 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
   })
   
   ## Different DT version handle namespaces differently. Make sure it works in all of them.
-  dt_proxy <- DT::dataTableProxy(session$ns('dt_samples_comparison'))
-  dt_proxy1 <- DT::dataTableProxy('dt_samples_comparison')
+  # dt_proxy <- DT::dataTableProxy(session$ns('dt_samples_comparison'))
+  dt_proxy <- DT::dataTableProxy(session$ns('dt_samples_comparison'), session = shiny::getDefaultReactiveDomain())
+  dt_proxy1 <- DT::dataTableProxy('dt_samples_comparison', session = shiny::getDefaultReactiveDomain())
+
   observe({
     ## replaceData does not work with modules, currently
     ##  see https://github.com/rstudio/DT/issues/359
     req(summarized_report_df())
-    DT::dataTableAjax(session, summarized_report_df()[[1]], rownames = FALSE, outputId = 'dt_samples_comparison')
-    DT::dataTableAjax(session, summarized_report_df()[[1]], rownames = FALSE,
-                      outputId = session$ns('dt_samples_comparison'))
-    DT::reloadData(dt_proxy, resetPaging=TRUE, clearSelection = "row")
-    DT::reloadData(dt_proxy1, resetPaging=TRUE, clearSelection = "row")
+    DT::replaceData(dt_proxy, summarized_report_df()[[1]], rownames = FALSE, resetPaging = TRUE, clearSelection = "row")
+    DT::replaceData(dt_proxy1, summarized_report_df()[[1]], rownames = FALSE, resetPaging = TRUE, clearSelection = "row")
+    
+    # DT::dataTableAjax(session, summarized_report_df()[[1]], rownames = FALSE, outputId = 'dt_samples_comparison')
+    # DT::dataTableAjax(session, summarized_report_df()[[1]], rownames = FALSE,
+    #                   outputId = session$ns('dt_samples_comparison'))
+    # DT::reloadData(dt_proxy, resetPaging=TRUE, clearSelection = "row")
+    # DT::reloadData(dt_proxy1, resetPaging=TRUE, clearSelection = "row")
   })
 
   observeEvent(input$btn_filter_row,  {
@@ -479,6 +494,7 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
       js_dict <- paste0(js_dict, key_value, sep = "\",\n\"")
     }
     js_dict <- paste0("\"",substr(js_dict, 0, nchar(js_dict)-3))
+    # session$sendCustomMessage(type="pavian_files", message=sample_data()$ReportFilePath)
     #filtered_clade_reads()
     DT::datatable(myDf,
                   container=myContainer,
@@ -504,55 +520,54 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
                       search = isolate(dt_options$search)
                     )
                   ),
-                  callback = htmlwidgets::JS('
-              var pavian_files_dict = {', js_dict, '};
-              table.on("dblclick.dt","tr", function() {
-              var data=table.row(this).data();
-              var data1=data[0].replace(/.*>/,"")
-              Shiny.onInputChange("comparison-double_clicked_row", data[data.length - 1] + ">" +data1)
-              //alert("You clicked on "+data[0]+"\'s row");
-              }
-              
-              )
-              table.on("mouseover.dt", "tbody td", function (event) {
-              var colIdx = table.cell(this).index().column;
-              var title = table.column(colIdx).header();
-              var colName = $(title).html();
-              var rowIdx = table.cell(this).index().row;
-              var taxid_string = table.cell(rowIdx,2).data();
-              var cell = table.cell(this);
-              var pavian_file = pavian_files_dict[colName];
-
-              //var link_str = \'<p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
-              //var link_str = \'<p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
-              var link_str = \'<p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
-              if (colName != "Name" && colName != "Rank" && colName != "TID"&& colName != "Max" && colName != "Lineage"){
-                $(cell).qtip({
-                  overwrite: false,
-                  content: link_str,
-                  position: {
-                    my: "right center",
-                    at: "center",
-                    target: "event",
-                  },
-                  show: {
-                    event: event.type,
-                    ready: true,
-                    solo: true,
-                  },
-                  hide: {
-                    fixed: true
-                  }
-                }, event); // Note we passed the event as the second argument. Always do this when binding within an event handler!
-                
-              }
-                })')
-    ) %>% formatDT(nSamples = nrow(sample_data()),
-                   numericColumns = numericColumns(),
-                   statsColumns = input$opt_statsColumns,
-                   nColumnsBefore = ncol(tax_data()) - 1,
-                   groupSampleColumns = input$opt_groupSamples)
+                  callback = htmlwidgets::JS(paste('
+                     var pavian_files_dict = {', js_dict, '};
+                     table.on("dblclick.dt","tr", function() {
+                     var data=table.row(this).data();
+                     var data1=data[0].replace(/.*>/,"")
+                     Shiny.onInputChange("comparison-double_clicked_row", data[data.length - 1] + ">" +data1)
+                     //alert("You clicked on "+data[0]+"\'s row");
+                     })
+                     
+                     table.on("mouseover.dt", "tbody td", function (event) {
+                     var colIdx = table.cell(this).index().column;
+                     var title = table.column(colIdx).header();
+                     var colName = $(title).html();
+                     var rowIdx = table.cell(this).index().row;
+                     var taxid_string = table.cell(rowIdx,2).data();
+                     var cell = table.cell(this);
+                     
+                     var pavian_file = pavian_files_dict[colName];
+                     //var link_str = \'<p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
+                     //var link_str = \'<p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
+                     var link_str = \'<p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
+                    if (colName != "Name" && colName != "Rank" && colName != "TID"&& colName != "Max" && colName != "Lineage"){
+                    $(cell).qtip({
+                      overwrite: false,
+                      content: link_str,
+                      position: {
+                        my: "right center",
+                        at: "center",
+                        target: "event",
+                      },
+                      show: {
+                        event: event.type,
+                        ready: true,
+                        solo: true,
+                      },
+                      hide: {
+                        fixed: true
+                      }
+                    }, event); // Note we passed the event as the second argument. Always do this when binding within an event handler!
+                    }
+                })'))) %>% formatDT(nSamples = nrow(sample_data()),
+                                   numericColumns = numericColumns(),
+                                   statsColumns = input$opt_statsColumns,
+                                   nColumnsBefore = ncol(tax_data()) - 1,
+                                   groupSampleColumns = input$opt_groupSamples)
   })
+  
+  dt_proxy1 <- DT::dataTableProxy('dt_samples_comparison', session = shiny::getDefaultReactiveDomain())
   
   get_columnDefs <- function(myDf, nColumnsBefore, nColumnsAfter, sample_files) {
     zero_col <- ifelse(show_rownames, 0, 1)
@@ -571,7 +586,7 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
                   name = name.replace(/.*>/,'')
                   name = name.replace(/ .*/,'')
                   if (name.startsWith('GCA_') || name.startsWith('GCF_')) {
-                    return '<a href=\"https://www.ncbi.nlm.nih.gov/assembly/'+name+'\" target=\"_blank\">asm</a>'; 
+                    return '<a href=\"https://www.ncbi.nlm.nih.gov/assembly/'+name+'\" target=\"_blank\">asm</a>';
                   } else if (name.startsWith('NC') || name.match(/^[A-Z]{1,2}[0-9]{5,6}/)) {
                     return '<a href=\"https://www.ncbi.nlm.nih.gov/nuccore/'+name+'\" target=\"_blank\">nuc</a>'; 
                   }
@@ -587,36 +602,6 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
       list(list(targets = seq(from=nColumnsBefore, to=nColumnsBefore+2), width='150px'))
     columnDefs[length(columnDefs) + 1] <- 
       list(list(targets = 1, width='35px'))
-    
-    
-    # Added by ***REMOVED***, click on sample and use taxid for cgi script. DEPRECATED
-    # sample_no_clade = 1
-    # sample_no_taxon = 1
-    # for (colname in colnames(myDf)) {
-    #   if (endsWith(colname, "Reads")){
-    #     if (endsWith(colname, "cladeReads")){
-    #       bam_file = sub("\\.[^.]*$", ".bam", sample_files[sample_no_clade])
-    #       sample_no_clade = sample_no_clade + 1
-    #     }
-    #     if (endsWith(colname, "taxonReads")){
-    #       bam_file = sub("\\.[^.]*$", ".bam", sample_files[sample_no_taxon])
-    #       sample_no_taxon = sample_no_taxon + 1
-    #     }
-    #     columnDefs[length(columnDefs) + 1] <-
-    #       list(list(targets = which(colnames(myDf) == colname) - zero_col,
-    #                 render = htmlwidgets::JS(paste("function(data, type, row, meta) {
-    #               bam_file = '", bam_file ,"'
-    #               console.log(bam_file)
-    #               taxid = row[2]
-    #               if (data > 0){
-    #                 return '<a href=\"http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=' + taxid + '&sample=' + bam_file + '\" target=\"_blank\">' + data + '</a>';
-    #               } else{
-    #                 return '';
-    #               }
-    #           }", sep=""))
-    #       ))
-    #   }
-    # }
     
     columnDefs
   }
@@ -702,12 +687,34 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
       columns <- col_seq(i)
       #rg <- range(dt[[1]]$data[,columns], na.rm = TRUE)
       #brks <- seq(from=rg[1],to=rg[2], length.out=20)
-      brks <- unique(stats::quantile(dt[[1]]$data[,columns], probs = cumsum(1/2^(1:20)), na.rm =TRUE))
+      column_vector <- dt[[1]]$data[,columns]
+      # Include the NA's which were actually zeroes. 
+      column_vector[is.na(column_vector)] <- 0
+      # Below is an attempt to shift the colour gradient. Right now it doesn't work well if 
+      # there are a couple of high percentages and one zero. However, when using probs = seq(0,1,length.out=20),
+      # it doesn't work well when there is a lot of 'high' numbers. 
+      # brks <- unique(stats::quantile(column_vector, probs = seq(0,1,length.out=20), na.rm =TRUE))
+      brks <- unique(stats::quantile(column_vector, probs = cumsum(1/2^(1:20)), na.rm =TRUE))
       clrs <- round(seq(0, 1, length.out = length(brks) + 1),4) %>% {sprintf("rgba(%s,%s)", cols[i],.)}
       dt <- dt %>% DT::formatStyle(columns, backgroundColor = DT::styleInterval(brks, clrs))
     }
     
     dt
   }
+  
+  # Added values of interest to restore after bookmark
+  onBookmark(function(state) {
+    state$values$dt_options_search <- dt_options$search
+    state$values$dt_options_order <- dt_options$order
+    state$values$dt_options_colnames <- dt_options$colnames
+    state$values$taxLineage_val <- taxLineage$val
+  })
+  
+  onRestore(function(state) {
+    dt_options$search <- state$values$dt_options_search
+    dt_options$order <- state$values$dt_options_order
+    dt_options$colnames <- state$values$dt_options_colnames
+    taxLineage$val <- state$values$taxLineage_val
+  })
   
 }

@@ -206,7 +206,7 @@ assayData.merged_reports <- function(x)
 #' reports <- read_reports(report_dir)
 merge_reports2 <- function(my_reports, col_names = NULL, fix_taxnames = TRUE, update_progress = FALSE,
                            id_cols = c("name", "taxRank", "taxID", "taxLineage"),
-                           numeric_cols = c("cladeReads","taxonReads")) {
+                           numeric_cols = c("cladeReads","taxonReads", "cladeIdentity", "taxonIdentity")) {
   common_colnames <- Reduce(intersect, lapply(my_reports, colnames))
   
   if (is.null(my_reports) || length(my_reports) == 0)
@@ -268,20 +268,25 @@ merge_reports2 <- function(my_reports, col_names = NULL, fix_taxnames = TRUE, up
   tax_data <- merged_reports[, id_cols, drop = FALSE]
   ## remove s_, g_, etc
   tax_data[, 1] <- sub("^[a-z-]_", "", tax_data[, 1])
-  
-  idx_cladeReads <- seq(from = length(id_cols) + 1, to = ncol(merged_reports), by = 2)
-  idx_taxonReads <- seq(from = length(id_cols) + 2, to = ncol(merged_reports), by = 2)
+  idx_cladeReads <- seq(from = length(id_cols) + 1, to = ncol(merged_reports), by = 4)
+  idx_taxonReads <- seq(from = length(id_cols) + 2, to = ncol(merged_reports), by = 4)
+  idx_cladeIdentity <- seq(from = length(id_cols) + 3, to = ncol(merged_reports), by = 4)
+  idx_taxonIdentity <- seq(from = length(id_cols) + 4, to = ncol(merged_reports), by = 4)
   
   cladeReads <- as.matrix(merged_reports[, idx_cladeReads, drop = FALSE])
   taxonReads <- as.matrix(merged_reports[, idx_taxonReads, drop = FALSE])
+  cladeIdentity <- as.matrix(merged_reports[, idx_cladeIdentity, drop = FALSE])
+  taxonIdentity <- as.matrix(merged_reports[, idx_taxonIdentity, drop = FALSE])
   
   if (!is.null(col_names)) {
     stopifnot(length(col_names) == ncol(cladeReads))
     colnames(cladeReads) <- col_names
     colnames(taxonReads) <- col_names
+    colnames(cladeIdentity) <- col_names
+    colnames(taxonIdentity) <- col_names
   }
   
-  list(tax_data = tax_data, cladeReads = cladeReads, taxonReads = taxonReads)
+  list(tax_data = tax_data, cladeReads = cladeReads, taxonReads = taxonReads, cladeIdentity = cladeIdentity, taxonIdentity = taxonIdentity)
 }
 
 
@@ -423,12 +428,12 @@ get_dt_container <- function(numericColumns, taxColumns, sampleNames, groupSampl
   dt_container
 }
 
-one_df <- function(cladeReads, taxonReads, tax_data, sample_data, 
+one_df <- function(cladeReads, taxonReads, cladeIdentity, taxonIdentity,
+                   tax_data, sample_data, 
                    numericColumns, statsColumns, sum_reads = NULL,
                    groupSampleColumns = FALSE, specific_tax_rank = FALSE,
                    min_scale_reads = 1, min_scale_percent = 0.001) {
  
-   
   taxColumns <- colnames(tax_data)
   taxColumns <- taxColumns[taxColumns != "taxLineage"]
   taxColumns1 <- COLNAMES[taxColumns]
@@ -473,6 +478,12 @@ one_df <- function(cladeReads, taxonReads, tax_data, sample_data,
                                  center = med1,
                                  scale  = mad1)),4))
         
+      } else if (col == "map-identity") {
+        # Show custom mapping identity data.
+        if (isTRUE(column[1] == "cladeReads")) {       mydata <- data.frame(cladeIdentity)
+        } else if (isTRUE(column[1] == "taxonReads")) {  mydata <- data.frame(taxonIdentity)
+        #} else if (isTRUE(column[1] == "cladeKmers")) {  mydata <- data.frame(cladeKmers)
+        }
       } else if (col == "identity") {
         # do nothing
       } else {

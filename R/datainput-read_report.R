@@ -388,10 +388,12 @@ read_report <- function(myfile, has_header=NULL, check_file = FALSE) {
     dmessage(myfile," is not a ASCII file")
     return(NULL)
   }
-
   if (is.null(has_header)) {
     has_header <- grepl("^[a-zA-Z#%\"]",first.line)
   }
+  # Custom option added, assumes "Naktuinbouw" is in the first line of input file, other
+  # than that kraken format.
+  is_naktuinbouw_fmt <- grepl("Naktuinbouw", first.line)
   is_metaphlan_fmt <- grepl("Metaphlan2_Analysis$", first.line)
   is_krakenu_fmt <- grepl("^.?%\treads\ttaxReads\tkmers", first.line)
   is_kaiju_fmt <- grepl("^  *%\t  *reads", first.line)
@@ -435,10 +437,18 @@ read_report <- function(myfile, has_header=NULL, check_file = FALSE) {
     tl_order <- order(report$taxLineage)
     tl_order <- c(tl_order[length(tl_order)],tl_order[-length(tl_order)])
     report <- report[tl_order, c("taxLineage", "taxonReads", "cladeReads")]
+  } else if (is_naktuinbouw_fmt) {
+    report <- tryCatch({
+      ## suppress warning saying no columns is not equal to no of headers..
+      suppressWarnings(utils::read.table(myfile,sep="\t",header = T,
+                        col.names = c("percentage","cladeReads","cladeIdentity","taxonReads","taxonIdentity","taxRank","taxID","name"),
+                        quote = "",stringsAsFactors=FALSE,
+                        nrows = nrows))
+    }, error=function(x) NULL)
+    if (is.null(report)) { return(NULL); }
   } else if (has_header) {
     report <- tryCatch({
       ## TODO: Having comment_char here causes a problem w/ Metaphlan report!!
-
       utils::read.table(myfile,sep="\t",header = T,
                         quote = "",stringsAsFactors=FALSE,
                         comment.char = ifelse(is_metaphlan_fmt, "", "#"), nrows = nrows, 
@@ -567,11 +577,19 @@ read_report <- function(myfile, has_header=NULL, check_file = FALSE) {
   #report$taxRankperc <- 100/taxRank(report$cladeReads)
 
   #report$depth <- NULL
+  
+  # Add fake columns if 'identity' columns are not in input file.
+  if (!"cladeIdentity" %in% colnames(report)){
+    report$cladeIdentity <- integer(nrow(report))
+  }
+  if (!"taxonIdentity" %in% colnames(report)){
+    report$taxonIdentity <- integer(nrow(report))
+  }
 
   if ("taxID" %in% colnames(report)) {
-    std_colnames <- c("percentage","cladeReads","taxonReads","taxRank", "taxID","name")
+    std_colnames <- c("percentage","cladeReads","taxonReads","taxRank", "taxID","name","cladeIdentity","taxonIdentity")
   } else {
-    std_colnames <- c("percentage","cladeReads","taxonReads","taxRank","name")
+    std_colnames <- c("percentage","cladeReads","taxonReads","taxRank","name","cladeIdentity","taxonIdentity")
   }
   stopifnot(all(std_colnames %in% colnames(report)))
   report[, c(std_colnames, setdiff(colnames(report), std_colnames))]
