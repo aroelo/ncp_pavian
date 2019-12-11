@@ -114,7 +114,7 @@ comparisonModuleUI_function <- function(ns) {
         div(style="display:inline-block",
             shinyWidgets::checkboxGroupButtons(inputId = ns("opt_numericColumns1"), 
                 label = NULL, choices = c("Clade"="cladeReads", "Taxon"="taxonReads"), 
-                selected = "cladeReads",
+                selected = "taxonReads",
                 status = "warning")),
         div(style="display:inline-block",selectizeInput(
             ns('contaminant_selector_clade'),
@@ -488,7 +488,6 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     for (i in 1:nrow(sample_data())) {
       sample_files[i] = sample_data()[["ReportFile"]][i]
     }
-    browser()
     js_dict <-NULL
     for (i in seq(1, nrow(sample_data()))) {
       key_value<- paste0(sample_data()$Name[i], "\":\"", sample_data()$ReportFilePath[i])
