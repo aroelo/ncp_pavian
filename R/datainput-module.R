@@ -76,7 +76,8 @@ datatablePanel <- function(ns) {
            ),
            verbatimTextOutput(outputId = ns('res')),
            DT::dataTableOutput(ns('data_input_table')),
-           actionButton(ns("datatable_upload"), label = "Load selected datasets")
+           actionButton(ns("datatable_upload"), label = "Load selected datasets"),
+           actionButton(ns("datatable_clear_select"), label = "Clear selection")
            )
 }
 
@@ -237,6 +238,12 @@ dataInputModule <- function(input, output, session,
                     ), 
                   filter = list(position = "top")
     )
+  })
+  
+  proxy = DT::dataTableProxy('data_input_table')
+  
+  observeEvent(input$datatable_clear_select, {
+    proxy %>% DT::selectRows(NULL)
   })
   
   # output$data_input_table <- DT::renderDataTable({
