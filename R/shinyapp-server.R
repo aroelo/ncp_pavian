@@ -48,7 +48,7 @@ pavianServer <- function(input, output, session) {
   cache_dir <- NULL
 
   ## Global Pavian options
-  pavian_options <- reactiveValues(server_dir = getOption("pavian.server_dir"))
+  pavian_options <- reactiveValues(server_dir = getOption("pavian.server_dir"), flask_host = getOption("pavian.flask_host"))
 
   pID <- session$token
   ID <- getOption("pavian.session_count",0) +1
@@ -287,7 +287,7 @@ pavianServer <- function(input, output, session) {
   taxon_identity <- reactive({ summarized_report()[[5]] })
   
   callModule(comparisonModule, "comparison", sample_data, tax_data, clade_reads, taxon_reads,
-             clade_identity, taxon_identity, reports, datatable_opts = datatable_opts)#, search = sample_module_selected)
+             clade_identity, taxon_identity, reports, datatable_opts = datatable_opts, pavian_options=pavian_options)#, search = sample_module_selected)
   
   #####################
   ## Alignment module
