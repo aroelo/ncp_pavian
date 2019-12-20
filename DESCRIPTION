@@ -28,6 +28,7 @@ Imports:
     rappdirs,
     DBI,
     RMySQL,
+    RPostgres
 Suggests: 
     Rsamtools, knitr
 Remotes:

@@ -148,6 +148,7 @@ dataInputModuleUI <- function(id,
 #' @export
 #' @import RMySQL
 #' @import DBI
+#' @import RPostgres
 dataInputModule <- function(input, output, session,
                             #server_dirs = c(pavian_lib_dir=system.file("shinyapp", "example-data", package = "pavian"),
                             #                root = "/home/fbreitwieser"),
@@ -185,7 +186,12 @@ dataInputModule <- function(input, output, session,
   
   read_error_msg <- reactiveValues(val_pos = NULL, val_neg = NULL)
   
-  mydb = DBI::dbConnect(RMySQL::MySQL(), user='root', dbname='pavian', host='***REMOVED***')
+  if (pavian_options$db == "MySQL"){
+    mydb = DBI::dbConnect(RMySQL::MySQL(), user='root', dbname='pavian', host='***REMOVED***')
+  } else if (pavian_options$db == "Postgresql") {
+    mydb = DBI::dbConnect(RPostgres::Postgres(), dbname='***REMOVED***_dev', host='db', port='***REMOVED***', user='***REMOVED***', password='***REMOVED***')
+  }
+  
   rv = reactiveValues(test_input = DBI::dbGetQuery(mydb, "SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data GROUP BY file"))
   
   observeEvent(input$search_taxid, {
@@ -249,8 +255,8 @@ dataInputModule <- function(input, output, session,
   # 
   observeEvent(input$datatable_upload, {
     fnames = rv$test_input[input$data_input_table_rows_selected,]$file
-    base_dir = '/home/***REMOVED***/RProjects/pavian/input/'
-    fnames = paste0(base_dir, fnames)
+    base_dir = pavian_options$server_dir
+    fnames = file.path(base_dir, fnames)
     read_server_directory(fnames)
   })
   

@@ -15,6 +15,7 @@ runApp(
   enableBookmarking = "server",
   flask_host = "***REMOVED***",
   flask_port = "***REMOVED***",
+  db = "MySQL",
   ...
 )
 
