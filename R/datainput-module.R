@@ -156,7 +156,8 @@ dataInputModule <- function(input, output, session,
                             server_access = getOption("pavian.server_access", default = FALSE),
                             load_server_directory = getOption("pavian.load_server_directory", default = FALSE),
                             load_example_data = getOption("pavian.load_example_data", default = FALSE),
-                            pavian_options = NULL) {
+                            pavian_options = NULL,
+                            db = getOption("pavian.db")) {
   
   sample_sets <- reactiveValues(val=NULL, selected=NULL, bookmark=FALSE) # val is the list of all sample sets
   sample_sets_selected <- NULL # selected is just used to initialize the radioButtons in the module
@@ -186,11 +187,13 @@ dataInputModule <- function(input, output, session,
   
   read_error_msg <- reactiveValues(val_pos = NULL, val_neg = NULL)
   
-  if (pavian_options$db == "MySQL"){
+  if (db == "MySQL"){
     mydb = DBI::dbConnect(RMySQL::MySQL(), user='root', dbname='pavian', host='***REMOVED***')
-  } else if (pavian_options$db == "Postgresql") {
+  } else if (db == "Postgresql") {
     mydb = DBI::dbConnect(RPostgres::Postgres(), dbname='***REMOVED***_dev', host='db', port='***REMOVED***', user='***REMOVED***', password='***REMOVED***')
   }
+  
+  mydb = DBI::dbConnect(RMySQL::MySQL(), user='root', dbname='pavian', host='***REMOVED***')
   
   rv = reactiveValues(test_input = DBI::dbGetQuery(mydb, "SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data GROUP BY file"))
   
