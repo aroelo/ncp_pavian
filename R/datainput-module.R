@@ -1,10 +1,3 @@
-#vim: noai:ts=2:sw=2 
-  
-library(shiny)
-library(rhandsontable)
-library(shinyFileTree)
-library(RMySQL)
-
 serverDataPanel <- function(ns) {
   tabPanel(
     "Use data on server",
@@ -153,6 +146,8 @@ dataInputModuleUI <- function(id,
 #'
 #' @return Shiny module server function, to be called by callModule.
 #' @export
+#' @import RMySQL
+#' @import DBI
 dataInputModule <- function(input, output, session,
                             #server_dirs = c(pavian_lib_dir=system.file("shinyapp", "example-data", package = "pavian"),
                             #                root = "/home/fbreitwieser"),
