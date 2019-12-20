@@ -1,4 +1,4 @@
-detach("package:pavian", unload=TRUE)
+unloadNamespace("pavian")
 library(pavian, lib.loc = "/home/shiny/miniconda3/envs/pavian/lib/R/dev-library")
 
 if (!require(Rsamtools)) {
