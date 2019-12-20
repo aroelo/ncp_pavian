@@ -25,7 +25,9 @@ Imports:
     colorspace,
     ggplot2,
     rhandsontable,
-    rappdirs
+    rappdirs,
+    DBI,
+    RMySQL,
 Suggests: 
     Rsamtools, knitr
 Remotes:
