@@ -40,5 +40,5 @@ options(
   )
 )
 
-pavian:::runApp()
+pavian::runApp()
 # shiny::shinyApp(pavian::dashboardUI, pavian::pavianServer, enableBookmarking="server")

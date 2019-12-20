@@ -11,6 +11,7 @@
 #'
 #' @param ... Additional arguments to \code{\link[shiny]{runApp}}, such as \code{host} and \code{port}.
 #'
+#' @export
 runApp <- function(cache_dir = "cache",
                    #Change default directory of input on 'use data on server'
                    server_dir = Sys.glob("/home/***REMOVED***/RProjects/pavian/input"),
@@ -80,5 +81,5 @@ runApp <- function(cache_dir = "cache",
 #' @describeIn runApp Create pavian app (passes arguments to runApp)
 #' @export
 pavianApp <- function(...) {
-    pavian:::runApp(...)
+    pavian::runApp(...)
 }
