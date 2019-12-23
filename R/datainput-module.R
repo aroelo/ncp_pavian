@@ -193,11 +193,11 @@ dataInputModule <- function(input, output, session,
     mydb = DBI::dbConnect(RPostgres::Postgres(), dbname='***REMOVED***_dev', host='db', port='***REMOVED***', user='***REMOVED***', password='***REMOVED***')
   }
   
-  rv = reactiveValues(test_input = DBI::dbGetQuery(mydb, "SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data GROUP BY file"))
+  input_database = reactiveValues(query = DBI::dbGetQuery(mydb, "SELECT file, run, sample, nt, date, support FROM pavian_data GROUP BY file, run, sample, nt, date, support"))
   
   observeEvent(input$search_taxid, {
     if (input$search_taxid == ""){
-      complete_query <- "SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data GROUP BY file"
+      complete_query <- "SELECT file, run, sample, nt, date, support FROM pavian_data GROUP BY file, run, sample, nt, date, support"
     }
     else{
       search_query_list <- strsplit(input$search_taxid, ", ")
@@ -214,21 +214,21 @@ dataInputModule <- function(input, output, session,
       taxid_queries = paste(taxid_queries, collapse=' || ')
       name_queries = paste(name_queries, collapse=' || ')
       if (taxid_queries != "") {
-        complete_query <- paste0("SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data WHERE ", taxid_queries, " GROUP BY file")
+        complete_query <- paste0("SELECT file, run, sample, nt, date, support FROM pavian_data WHERE ", taxid_queries, " GROUP BY file, run, sample, nt, date, support")
         
       }
       else if (name_queries != "") {
-        complete_query <- paste0("SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data WHERE ", name_queries, " GROUP BY file")
+        complete_query <- paste0("SELECT file, run, sample, nt, date, support FROM pavian_data WHERE ", name_queries, " GROUP BY file, run, sample, nt, date, support")
       }
       else{
-        complete_query <- paste0("SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data WHERE ", taxid_queries, " || ", name_queries, " GROUP BY file")
+        complete_query <- paste0("SELECT file, run, sample, nt, date, support FROM pavian_data WHERE ", taxid_queries, " || ", name_queries, " GROUP BY file, run, sample, nt, date, support")
       }
     }
-    rv$test_input <- DBI::dbGetQuery(mydb, complete_query)
+    input_database$query <- DBI::dbGetQuery(mydb, complete_query)
   })
   
   output$data_input_table <- DT::renderDataTable({
-    DT::datatable(rv$test_input, 
+    DT::datatable(input_database$query, 
                   options = list(
                     order = list(5, 'desc'),
                     # pageLength = 10,
@@ -255,7 +255,7 @@ dataInputModule <- function(input, output, session,
   # })
   # 
   observeEvent(input$datatable_upload, {
-    fnames = rv$test_input[input$data_input_table_rows_selected,]$file
+    fnames = input_database$query[input$data_input_table_rows_selected,]$file
     base_dir = pavian_options$server_dir
     fnames = file.path(base_dir, fnames)
     read_server_directory(fnames)
