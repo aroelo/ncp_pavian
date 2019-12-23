@@ -211,8 +211,8 @@ dataInputModule <- function(input, output, session,
           name_queries <- c(name_queries, paste0("organism_name = '", item,"'"))
         }
       }
-      taxid_queries = paste(taxid_queries, collapse=' || ')
-      name_queries = paste(name_queries, collapse=' || ')
+      taxid_queries = paste(taxid_queries, collapse=' OR ')
+      name_queries = paste(name_queries, collapse=' OR ')
       if (taxid_queries != "") {
         complete_query <- paste0("SELECT file, run, sample, nt, date, support FROM pavian_data WHERE ", taxid_queries, " GROUP BY file, run, sample, nt, date, support")
         
@@ -221,7 +221,7 @@ dataInputModule <- function(input, output, session,
         complete_query <- paste0("SELECT file, run, sample, nt, date, support FROM pavian_data WHERE ", name_queries, " GROUP BY file, run, sample, nt, date, support")
       }
       else{
-        complete_query <- paste0("SELECT file, run, sample, nt, date, support FROM pavian_data WHERE ", taxid_queries, " || ", name_queries, " GROUP BY file, run, sample, nt, date, support")
+        complete_query <- paste0("SELECT file, run, sample, nt, date, support FROM pavian_data WHERE ", taxid_queries, " OR ", name_queries, " GROUP BY file, run, sample, nt, date, support")
       }
     }
     input_database$query <- DBI::dbGetQuery(mydb, complete_query)
