@@ -25,7 +25,10 @@ Imports:
     colorspace,
     ggplot2,
     rhandsontable,
-    rappdirs
+    rappdirs,
+    DBI,
+    RMySQL,
+    RPostgres
 Suggests: 
     Rsamtools, knitr
 Remotes:
@@ -33,5 +36,5 @@ Remotes:
     github::fbreitwieser/shinyFileTree
 License: GPL-3
 LazyData: TRUE
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 VignetteBuilder: knitr

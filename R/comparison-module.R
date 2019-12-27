@@ -166,7 +166,7 @@ na0 <- function(x) {
 #' @export
 comparisonModule <- function(input, output, session, sample_data, tax_data, clade_reads, taxon_reads,
                              clade_identity, taxon_identity,
-                             datatable_opts = NULL, filter_func = NULL, tax_data_add = NULL, search = NULL) {
+                             datatable_opts = NULL, pavian_options = NULL, filter_func = NULL, tax_data_add = NULL, search = NULL) {
   output$UI <- renderUI({
     req(sample_data())
     comparisonModuleUI_function(session$ns)
@@ -520,27 +520,33 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
                       search = isolate(dt_options$search)
                     )
                   ),
-                  callback = htmlwidgets::JS(paste('
-                     var pavian_files_dict = {', js_dict, '};
-                     table.on("dblclick.dt","tr", function() {
-                     var data=table.row(this).data();
-                     var data1=data[0].replace(/.*>/,"")
-                     Shiny.onInputChange("comparison-double_clicked_row", data[data.length - 1] + ">" +data1)
+                  callback = htmlwidgets::JS(paste0('
+                    var pavian_files_dict = {', js_dict, '};
+                    table.on("dblclick.dt","tr", function() {
+                    var data=table.row(this).data();
+                    var data1=data[0].replace(/.*>/,"")
+                    Shiny.onInputChange("comparison-double_clicked_row", data[data.length - 1] + ">" +data1)
                      //alert("You clicked on "+data[0]+"\'s row");
-                     })
+                    })
                      
-                     table.on("mouseover.dt", "tbody td", function (event) {
-                     var colIdx = table.cell(this).index().column;
-                     var title = table.column(colIdx).header();
-                     var colName = $(title).html();
-                     var rowIdx = table.cell(this).index().row;
-                     var taxid_string = table.cell(rowIdx,2).data();
-                     var cell = table.cell(this);
+                    table.on("mouseover.dt", "tbody td", function (event) {
+                    var colIdx = table.cell(this).index().column;
+                    var title = table.column(colIdx).header();
+                    var colName = $(title).html();
+                    var rowIdx = table.cell(this).index().row;
+                    var taxid_string = table.cell(rowIdx,2).data();
+                    var cell = table.cell(this);
                      
-                     var pavian_file = pavian_files_dict[colName];
-                     //var link_str = \'<p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***/cgi-bin/download_pavian_data.py?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
-                     //var link_str = \'<p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + colName + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
-                     var link_str = \'<p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=download" target="_blank">Download data</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=viewreads" target="_blank">View reads and blast</a></p><p><a href="http://***REMOVED***:***REMOVED***/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=jbrowse" target="_blank">Visualise in Jbrowse</a></p>\';
+                    var pavian_file = pavian_files_dict[colName];
+                    var base_link1 = \'<p><a href="http://', pavian_options$flask_host, ':', pavian_options$flask_port, '/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=\'
+                    var base_link2 = \'" target="_blank">\'
+                    var base_link3 = \'</a></p>\'
+
+                    var download = base_link1 + \'download\' + base_link2+ \'Download data test\' + base_link3
+                    var viewreads = base_link1 + \'viewreads\' + base_link2+ \'View reads and blast\' + base_link3
+                    var jbrowse = base_link1 + \'jbrowse\' + base_link2+ \'Visualise in Jbrowse\' + base_link3
+
+                    var link_str = download + viewreads + jbrowse
                     if (colName != "Name" && colName != "Rank" && colName != "TID"&& colName != "Max" && colName != "Lineage"){
                     $(cell).qtip({
                       overwrite: false,

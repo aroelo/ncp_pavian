@@ -1,10 +1,3 @@
-#vim: noai:ts=2:sw=2 
-  
-library(shiny)
-library(rhandsontable)
-library(shinyFileTree)
-library(RMySQL)
-
 serverDataPanel <- function(ns) {
   tabPanel(
     "Use data on server",
@@ -153,6 +146,9 @@ dataInputModuleUI <- function(id,
 #'
 #' @return Shiny module server function, to be called by callModule.
 #' @export
+#' @import RMySQL
+#' @import DBI
+#' @import RPostgres
 dataInputModule <- function(input, output, session,
                             #server_dirs = c(pavian_lib_dir=system.file("shinyapp", "example-data", package = "pavian"),
                             #                root = "/home/fbreitwieser"),
@@ -160,7 +156,8 @@ dataInputModule <- function(input, output, session,
                             server_access = getOption("pavian.server_access", default = FALSE),
                             load_server_directory = getOption("pavian.load_server_directory", default = FALSE),
                             load_example_data = getOption("pavian.load_example_data", default = FALSE),
-                            pavian_options = NULL) {
+                            pavian_options = NULL,
+                            db = getOption("pavian.db")) {
   
   sample_sets <- reactiveValues(val=NULL, selected=NULL, bookmark=FALSE) # val is the list of all sample sets
   sample_sets_selected <- NULL # selected is just used to initialize the radioButtons in the module
@@ -190,12 +187,17 @@ dataInputModule <- function(input, output, session,
   
   read_error_msg <- reactiveValues(val_pos = NULL, val_neg = NULL)
   
-  mydb = DBI::dbConnect(RMySQL::MySQL(), user='root', dbname='pavian', host='***REMOVED***')
-  rv = reactiveValues(test_input = DBI::dbGetQuery(mydb, "SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data GROUP BY file"))
+  if (db == "MySQL"){
+    mydb = DBI::dbConnect(RMySQL::MySQL(), user='root', dbname='pavian', host='***REMOVED***')
+  } else if (db == "Postgresql") {
+    mydb = DBI::dbConnect(RPostgres::Postgres(), dbname='***REMOVED***_dev', host='db', port='***REMOVED***', user='***REMOVED***', password='***REMOVED***')
+  }
+  
+  input_database = reactiveValues(query = DBI::dbGetQuery(mydb, "SELECT file, run, sample, nt, date, support FROM pavian_data GROUP BY file, run, sample, nt, date, support"))
   
   observeEvent(input$search_taxid, {
     if (input$search_taxid == ""){
-      complete_query <- "SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data GROUP BY file"
+      complete_query <- "SELECT file, run, sample, nt, date, support FROM pavian_data GROUP BY file, run, sample, nt, date, support"
     }
     else{
       search_query_list <- strsplit(input$search_taxid, ", ")
@@ -209,24 +211,24 @@ dataInputModule <- function(input, output, session,
           name_queries <- c(name_queries, paste0("organism_name = '", item,"'"))
         }
       }
-      taxid_queries = paste(taxid_queries, collapse=' || ')
-      name_queries = paste(name_queries, collapse=' || ')
+      taxid_queries = paste(taxid_queries, collapse=' OR ')
+      name_queries = paste(name_queries, collapse=' OR ')
       if (taxid_queries != "") {
-        complete_query <- paste0("SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data WHERE ", taxid_queries, " GROUP BY file")
+        complete_query <- paste0("SELECT file, run, sample, nt, date, support FROM pavian_data WHERE ", taxid_queries, " GROUP BY file, run, sample, nt, date, support")
         
       }
       else if (name_queries != "") {
-        complete_query <- paste0("SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data WHERE ", name_queries, " GROUP BY file")
+        complete_query <- paste0("SELECT file, run, sample, nt, date, support FROM pavian_data WHERE ", name_queries, " GROUP BY file, run, sample, nt, date, support")
       }
       else{
-        complete_query <- paste0("SELECT file, run, sample, nt, date, IF(support, 'Yes', 'No') support FROM pavian_data WHERE ", taxid_queries, " || ", name_queries, " GROUP BY file")
+        complete_query <- paste0("SELECT file, run, sample, nt, date, support FROM pavian_data WHERE ", taxid_queries, " OR ", name_queries, " GROUP BY file, run, sample, nt, date, support")
       }
     }
-    rv$test_input <- DBI::dbGetQuery(mydb, complete_query)
+    input_database$query <- DBI::dbGetQuery(mydb, complete_query)
   })
   
   output$data_input_table <- DT::renderDataTable({
-    DT::datatable(rv$test_input, 
+    DT::datatable(input_database$query, 
                   options = list(
                     order = list(5, 'desc'),
                     # pageLength = 10,
@@ -253,9 +255,9 @@ dataInputModule <- function(input, output, session,
   # })
   # 
   observeEvent(input$datatable_upload, {
-    fnames = rv$test_input[input$data_input_table_rows_selected,]$file
-    base_dir = '/home/***REMOVED***/RProjects/pavian/input/'
-    fnames = paste0(base_dir, fnames)
+    fnames = input_database$query[input$data_input_table_rows_selected,]$file
+    base_dir = pavian_options$server_dir
+    fnames = file.path(base_dir, fnames)
     read_server_directory(fnames)
   })
   
