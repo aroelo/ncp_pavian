@@ -1,3 +1,4 @@
+#test
 unloadNamespace("pavian")
 library(pavian, lib.loc = "/usr/local/lib/R/site-library")
 
