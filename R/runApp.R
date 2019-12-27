@@ -22,7 +22,8 @@ runApp <- function(cache_dir = "cache",
                    enableBookmarking = "server",
                    flask_host = '***REMOVED***',
                    flask_port = '***REMOVED***',
-                   db = "MySQL",
+                   db_type = "MySQL",
+                   db_name = NULL,
                    ...) {
 
   appDir <- system.file("shinyapp", package = "pavian")
@@ -69,7 +70,8 @@ runApp <- function(cache_dir = "cache",
     shiny.maxRequestSize = maxUploadSize,
     pavian.flask_host = flask_host,
     pavian.flask_port = flask_port,
-    pavian.db = db
+    pavian.db_type = db_type,
+    pavian.db_name = db_name
   )
 
   old_options <- options(new_options)
