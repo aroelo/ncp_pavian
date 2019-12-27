@@ -1,1 +1,2 @@
 .gitlab-ci.yml merge=keepci
+inst/shinyapp/app.R merge=keepci
