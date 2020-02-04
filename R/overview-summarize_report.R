@@ -43,8 +43,6 @@ summarize_report <- function(my_report) {
   root_reads <- zero_if_na1(my_report["-_root","taxonReads"])
 
   #eukaryota_reads = zero_if_na1(my_report["d_Eukaryota","cladeReads"])
-  
-  browser()
   #fungal_s_reads <- sum(extract_from_report(my_report,"k_Fungi","S")[,"cladeReads"])
   #eukaryota_s_reads <- sum(extract_from_report(my_report,"d_Eukaryota","S")[,"cladeReads"])
   #eupath_reads <- my_report["d_Eukaryota","cladeReads"] - my_report["d_Eukaryota","taxonReads"] - my_report["-_Opisthokonta","cladeReads"]
