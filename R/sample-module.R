@@ -288,7 +288,8 @@ sampleModule <- function(input, output, session, sample_data, reports,
         axis.text.x = element_text(colour=colvec, angle=90, vjust=1,hjust=1, size = 10),
         legend.position = "none"
       ) + 
-      geom_text(aes(label = f2si2(pos), y=ifelse(type=='at taxon', 0.5*pos, pos-0.5*reads)), hjust = 0.5)
+      # If reads is 0 then overlap text, if not then make sure that texts are at least slightly above each other
+      geom_text(aes(label = f2si2(pos), y=pos, hjust = 0.5, vjust = ifelse(reads==0, -0.1, ifelse(type=='at taxon', -0.1, -1))))
   }
   
   output$save_plot1 <- downloadHandler(
