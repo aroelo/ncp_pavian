@@ -274,7 +274,7 @@ sampleModule <- function(input, output, session, sample_data, reports,
     #if (normalize) {
     #  mydf$reads <- 100*mydf$reads / rep(sum_clade_reads(), each = 2)
     #}
-    
+
     ## TODO: Replace by D3 graph?
     ##   See e.g. http://eyeseast.github.io/visible-data/2013/08/28/responsive-charts-with-d3/
     ggplot(mydf, aes(x=sample)) +
@@ -287,7 +287,9 @@ sampleModule <- function(input, output, session, sample_data, reports,
         axis.ticks = element_blank(),
         axis.text.x = element_text(colour=colvec, angle=90, vjust=1,hjust=1, size = 10),
         legend.position = "none"
-      )
+      ) + 
+      # If reads is 0 then overlap text, if not then make sure that texts are at least slightly above each other
+      geom_text(aes(label = f2si2(pos), y=pos, hjust = 0.5, vjust = ifelse(reads==0, -0.1, ifelse(type=='at taxon', -0.1, -1))))
   }
   
   output$save_plot1 <- downloadHandler(
@@ -295,14 +297,12 @@ sampleModule <- function(input, output, session, sample_data, reports,
       paste("plot1-", Sys.Date(), ".pdf", sep="")
     },
     content = function(file) {
-      ggsave(file, plot_it(FALSE) +
-               geom_text(aes(label = f2si2(pos), y=pos), hjust = 0.5, vjust = -.1))
+      ggsave(file, plot_it(FALSE))
     }
   )
   
   output$plot1 <- renderPlot({
-    plot_it(FALSE) +
-      geom_text(aes(label = f2si2(pos), y=pos), hjust = 0.5, vjust = -.1)
+    plot_it(FALSE)
   },  bg="transparent")
   
   output$save_plot2 <- downloadHandler(
@@ -310,14 +310,12 @@ sampleModule <- function(input, output, session, sample_data, reports,
       paste("plot2-", Sys.Date(), ".pdf", sep="")
     },
     content = function(file) {
-      ggsave(file, plot_it(TRUE) +
-               geom_text(aes(label = f2si2(pos), y=pos),  hjust = 0.5, vjust = -.1))
+      ggsave(file, plot_it(TRUE))
     }
   )
   
   output$plot2 <- renderPlot({
-    plot_it(TRUE) +
-      geom_text(aes(label = f2si2(pos), y=pos),  hjust = 0.5, vjust = -.1)
+    plot_it(TRUE)
   },  bg="transparent")
   
   

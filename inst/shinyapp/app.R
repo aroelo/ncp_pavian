@@ -1,4 +1,8 @@
-#test
+#IMPORTANT. This file is copied from different locations for dev/master branch in the ci.bash file.
+#Master from /home/shiny/master to /srv/shiny-server/pavian_stable/app.R
+#Dev  from /home/shiny/dev to /srv/shiny-server/pavian_dev/app.R
+# if you make any changes to this file, change them locally at these locations (/home/shiny/master & /home/shiny/dev)!
+
 unloadNamespace("pavian")
 library(pavian, lib.loc = "/usr/local/lib/R/site-library")
 
