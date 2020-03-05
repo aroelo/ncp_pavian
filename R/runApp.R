@@ -14,16 +14,20 @@
 #' @export
 runApp <- function(cache_dir = "cache",
                    #Change default directory of input on 'use data on server'
-                   server_dir = Sys.glob("/home/***REMOVED***/RProjects/pavian/input"),
+                   server_dir = Sys.glob("~"),
                    server_access = TRUE,
                    load_example_data = FALSE,
                    load_server_directory = FALSE,
                    maxUploadSize = NULL,
                    enableBookmarking = "server",
-                   flask_host = '***REMOVED***',
-                   flask_port = '***REMOVED***',
-                   db_type = "MySQL",
+                   flask_host = NULL,
+                   flask_port = NULL,
+                   db_type = NULL,
                    db_name = NULL,
+                   db_host = NULL,
+                   db_port = NULL,
+                   db_user = NULL,
+                   db_passwd = NULL,
                    ...) {
 
   appDir <- system.file("shinyapp", package = "pavian")
@@ -71,7 +75,11 @@ runApp <- function(cache_dir = "cache",
     pavian.flask_host = flask_host,
     pavian.flask_port = flask_port,
     pavian.db_type = db_type,
-    pavian.db_name = db_name
+    pavian.db_name = db_name,
+    pavian.db_host = db_host,
+    pavian.db_port = db_port,
+    pavian.db_user = db_user,
+    pavian.db_passwd = db_passwd
   )
 
   old_options <- options(new_options)
