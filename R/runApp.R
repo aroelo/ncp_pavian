@@ -14,19 +14,19 @@
 #' @export
 runApp <- function(cache_dir = "cache",
                    #Change default directory of input on 'use data on server'
-                   server_dir = Sys.glob("/home/***REMOVED***/RProjects/pavian/input"),
+                   server_dir = Sys.glob("~"),
                    server_access = TRUE,
                    load_example_data = FALSE,
                    load_server_directory = FALSE,
                    maxUploadSize = NULL,
                    enableBookmarking = "server",
-                   flask_host = '***REMOVED***',
-                   flask_port = '***REMOVED***',
-                   db_type = "MySQL",
-                   db_name = 'pavian',
-                   db_host = '***REMOVED***',
+                   flask_host = NULL,
+                   flask_port = NULL,
+                   db_type = NULL,
+                   db_name = NULL,
+                   db_host = NULL,
                    db_port = NULL,
-                   db_user = 'root',
+                   db_user = NULL,
                    db_passwd = NULL,
                    ...) {
 
