@@ -23,7 +23,11 @@ runApp <- function(cache_dir = "cache",
                    flask_host = '***REMOVED***',
                    flask_port = '***REMOVED***',
                    db_type = "MySQL",
-                   db_name = NULL,
+                   db_name = 'pavian',
+                   db_host = '***REMOVED***',
+                   db_port = NULL,
+                   db_user = 'root',
+                   db_passwd = NULL,
                    ...) {
 
   appDir <- system.file("shinyapp", package = "pavian")
@@ -71,7 +75,11 @@ runApp <- function(cache_dir = "cache",
     pavian.flask_host = flask_host,
     pavian.flask_port = flask_port,
     pavian.db_type = db_type,
-    pavian.db_name = db_name
+    pavian.db_name = db_name,
+    pavian.db_host = db_host,
+    pavian.db_port = db_port,
+    pavian.db_user = db_user,
+    pavian.db_passwd = db_passwd
   )
 
   old_options <- options(new_options)
