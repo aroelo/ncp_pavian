@@ -525,8 +525,8 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
                     table.on("dblclick.dt","tr", function() {
                     var data=table.row(this).data();
                     var data1=data[0].replace(/.*>/,"")
-                    Shiny.onInputChange("comparison-double_clicked_row", data[data.length - 1] + ">" +data1)
-                     //alert("You clicked on "+data[0]+"\'s row");
+                    Shiny.setInputValue("comparison-double_clicked_row", data[data.length - 1] + ">" +data1, {priority: "event"})
+                     // alert("You clicked on "+data[0]+"\'s row");
                     })
                      
                     table.on("mouseover.dt", "tbody td", function (event) {
