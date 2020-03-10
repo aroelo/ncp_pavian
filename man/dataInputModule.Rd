@@ -12,7 +12,13 @@ dataInputModule(
   server_access = getOption("pavian.server_access", default = FALSE),
   load_server_directory = getOption("pavian.load_server_directory", default = FALSE),
   load_example_data = getOption("pavian.load_example_data", default = FALSE),
-  pavian_options = NULL
+  pavian_options = NULL,
+  db_type = getOption("pavian.db_type"),
+  db_name = getOption("pavian.db_name"),
+  db_host = getOption("pavian.db_host"),
+  db_port = getOption("pavian.db_port"),
+  db_user = getOption("pavian.db_user"),
+  db_passwd = getOption("pavian.db_passwd")
 )
 }
 \arguments{
