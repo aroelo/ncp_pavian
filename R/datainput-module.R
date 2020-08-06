@@ -160,7 +160,6 @@ dataInputModule <- function(input, output, session,
                             db_type = getOption("pavian.db_type"),
                             db_name = getOption("pavian.db_name"),
                             db_host = getOption("pavian.db_host"),
-                            domain_suffix = getOption("pavian.domain_suffix"),
                             db_port = getOption("pavian.db_port"),
                             db_user = getOption("pavian.db_user"),
                             db_passwd = getOption("pavian.db_passwd")
