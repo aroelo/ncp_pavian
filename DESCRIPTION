@@ -32,8 +32,7 @@ Imports:
 Suggests: 
     Rsamtools, knitr
 Remotes:
-    github::fbreitwieser/sankeyD3,
-    github::fbreitwieser/shinyFileTree
+    github::fbreitwieser/sankeyD3,github::fbreitwieser/shinyFileTree
 License: GPL-3
 LazyData: TRUE
 RoxygenNote: 7.0.2
