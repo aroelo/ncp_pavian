@@ -48,7 +48,10 @@ pavianServer <- function(input, output, session) {
   cache_dir <- NULL
 
   ## Global Pavian options
-  pavian_options <- reactiveValues(server_dir = getOption("pavian.server_dir"), flask_host = getOption("pavian.flask_host"), flask_port = getOption("pavian.flask_port"))
+  pavian_options <- reactiveValues(server_dir = getOption("pavian.server_dir"),
+                                   domain_suffix = getOption("pavian.domain_suffix"),
+                                   flask_host = getOption("pavian.flask_host"),
+                                   flask_port = getOption("pavian.flask_port"))
   Sys.getenv
   pID <- session$token
   ID <- getOption("pavian.session_count",0) +1
