@@ -1,15 +1,15 @@
-stages:
-  - test
-  - deploy
+# stages:
+#   - test
+#   - deploy
 
-test:
-  stage: test
-  script: 
-    - /home/shiny/dev/ci.bash
+# test:
+#   stage: test
+#   script: 
+#     - /home/shiny/dev/ci.bash
 
-deploy_staging:
-  stage: deploy
-  script:
-    - /home/shiny/master/ci.bash
-  only:
-  - master
+# deploy_staging:
+#   stage: deploy
+#   script:
+#     - /home/shiny/master/ci.bash
+#   only:
+#   - master
