@@ -2,7 +2,7 @@
 variables:
   repobasepath: '/5_workspace/repos/'
   MASTER_PATH: /5_workspace/repos/pavian
-  DEV_PATH: /5_workspace/docker/pavian_dev
+  DEV_PATH: /5_workspace/repos/pavian_dev
   reposerver: prod-01.airflow.naktuinbouw.cloud
 
 dev:
