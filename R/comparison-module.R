@@ -538,7 +538,7 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
                     var cell = table.cell(this);
                      
                     var pavian_file = pavian_files_dict[colName];
-                    var base_link1 = \'<p><a href="http://nginx', pavian_options$domain_suffix, '/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=\'
+                    var base_link1 = \'<p><a href="http://webproxy', pavian_options$domain_suffix, '/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=\'
                     var base_link2 = \'" target="_blank">\'
                     var base_link3 = \'</a></p>\'
 
