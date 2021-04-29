@@ -58,24 +58,24 @@ dropdown_options <- function(ns) {
   shiny::tagList(
     #div(class="col-lg-6 col-md-6 lessPadding",
     shinyjs::hidden(
-    selectizeInput(
-      ns('contaminant_selector'),
-      allcontaminants,
-      label = "Filter taxon", multiple = TRUE,
-      options = list(maxItems = 25, create = TRUE, placeholder = 'Filter taxa'),
-      width = "100%"
-      #)
-    )),
+      selectizeInput(
+        ns('contaminant_selector'),
+        allcontaminants,
+        label = "Filter taxon", multiple = TRUE,
+        options = list(maxItems = 25, create = TRUE, placeholder = 'Filter taxa'),
+        width = "100%"
+        #)
+      )),
     #div(class="col-lg-6 col-md-6 lessPadding",
     checkboxGroupInput(ns("opt_statsColumns"), label = " Row summary", #multiple = TRUE,
-                   #options = list(placeholder = "Add column(s) with summary statistics of taxa's data"),
-                   choices = names(stat_name_to_f),
-                   selected = c("Max"),inline=TRUE), 
+                       #options = list(placeholder = "Add column(s) with summary statistics of taxa's data"),
+                       choices = names(stat_name_to_f),
+                       selected = c("Max"),inline=TRUE), 
     numericInput(ns("opt_min_scale_reads"), "Minimum scale for reads z-score", value = 1, min = 0),
     numericInput(ns("opt_min_scale_percent"), "Minimum scale for percent z-score", value = 0.001, min = 0),
     numericInput(ns("opt_min_clade_reads"), "Hide clades with less than X reads to taxon or children", value = 1, min = 1, step = 1)
     #numericInput(ns("opt_min_taxon_reads"), "Hide taxa with less than X reads", value = 1, min = 0, step = 1),
-    )
+  )
 }
 
 
@@ -104,35 +104,35 @@ comparisonModuleUI_function <- function(ns) {
                                             label = NULL, choices = taxRanks1, status = "success")),
         div(style="display:inline-block",
             shinyWidgets::checkboxGroupButtons(inputId = ns("opt_numericColumns2"),  label = NULL, 
-				   choices = c("Reads"="identity", "%"="%",
-					       "Rank"="rank","Z-score (reads)"="z-score","Z-score (%)"="% z-score",
-					       "% Identity"="% map-identity"), 
+                                               choices = c("Reads"="identity", "%"="%",
+                                                           "Rank"="rank","Z-score (reads)"="z-score","Z-score (%)"="% z-score",
+                                                           "% Identity"="% map-identity"), 
                                                justified = FALSE, 
                                                status = "primary",
                                                checkIcon = list(yes = icon("ok", lib = "glyphicon")), 
-                                selected = "identity")),
+                                               selected = "identity")),
         div(style="display:inline-block",
             shinyWidgets::checkboxGroupButtons(inputId = ns("opt_numericColumns1"), 
-                label = NULL, choices = c("Clade"="cladeReads", "Taxon"="taxonReads"), 
-                selected = "taxonReads",
-                status = "warning")),
+                                               label = NULL, choices = c("Clade"="cladeReads", "Taxon"="taxonReads"), 
+                                               selected = "taxonReads",
+                                               status = "warning")),
         div(style="display:inline-block",selectizeInput(
-            ns('contaminant_selector_clade'),
-            allcontaminants, #selected = c("artificial sequences"),
-            label = NULL, multiple = TRUE,
-            options = list( maxItems = 25, create = TRUE, placeholder = 'Filter taxa' ),
-            width = "100%")), 
+          ns('contaminant_selector_clade'),
+          allcontaminants, #selected = c("artificial sequences"),
+          label = NULL, multiple = TRUE,
+          options = list( maxItems = 25, create = TRUE, placeholder = 'Filter taxa' ),
+          width = "100%")), 
         div(style="display:inline-block",title="Filter clade of selected taxon (click on a table row, first)",
             actionButton(ns("btn_filter_row"), label=NULL, icon=icon("filter"))),
         div(style="display:inline-block", shinyWidgets::dropdownButton(dropdown_options(ns),#icon=icon("gear"),
                                                                        circle = FALSE, label = "more options ..."
                                                                        #,tooltip = shinyWidgets::tooltipOptions(title = "Click to see more options."
-                                                                       )),
+        )),
         div(style="display:inline-block", 
             shinyWidgets::prettySwitch(ns("opt_hide_zero_taxa"),
                                        "Collapse taxa with no reads", value=T, slim=T)),
         div(style="display:inline-block", shinyjs::hidden(
-            shinyWidgets::prettySwitch(ns("opt_groupSamples"),"Group samples", value = FALSE, slim=T))),
+          shinyWidgets::prettySwitch(ns("opt_groupSamples"),"Group samples", value = FALSE, slim=T))),
         htmlOutput(ns("messages")),
         htmlOutput(ns("taxLineage")),
         div(id=ns("table_div"), style = 'overflow-x: scroll', DT::dataTableOutput(ns('dt_samples_comparison'))),
@@ -186,10 +186,10 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
   })
   
   taxLineage <- reactiveValues(val=NULL)
-
+  
   output$taxLineage <- renderUI({
     req(taxLineage$val)
-
+    
     res <- paste(actionLink(session$ns("btn_x_lin"),"[x]"), " ")
     if (length(taxLineage$val) > 1) {
       vali <- taxLineage$val[1:(length(taxLineage$val)-1)]
@@ -198,17 +198,17 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     }
     return (HTML(paste0(res, taxLineage$val[length(taxLineage$val)])))
   })
-
+  
   output$messages <- renderUI({
     req(numericColumns1())
     if (!any(grepl("clade", numericColumns1())) && input$opt_taxRank != "-") {
       return(tags$p("Warning: A specific taxonomic rank is selected, but data is not on the clade level. Thus any data from the taxa's children are not visible. Consider adding clade-level data."))
     }
   })
-
+  
   observeEvent(input$btn_x_lin, { 
     taxLineage$val <- NULL } )
-
+  
   observeEvent(input$btn_lin_1, { taxLineage$val <- taxLineage$val[1] })
   observeEvent(input$btn_lin_2, { taxLineage$val <- taxLineage$val[1:2] })
   observeEvent(input$btn_lin_3, { taxLineage$val <- taxLineage$val[1:3] })
@@ -262,7 +262,7 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     
     return (and(x[-1]))
   }
-
+  
   my_tax_data <- reactive({
     td <- tax_data()
     cur_names = list()
@@ -287,7 +287,7 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     }
     td
   })
-
+  
   rm_taxons <- reactive({
     tax_data()$name %in% input$contaminant_selector_clade | tax_data()$name %in% input$contaminant_selector
   })
@@ -328,16 +328,16 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     # 
     clade_reads <- filtered_clade_reads()
     res <- !apply(is.na(clade_reads),1,all) &
-           filter_taxa(tax_data(),
-                rm_clades = input$contaminant_selector_clade,
-                rm_taxa = input$contaminant_selector,
-                taxRank = input$opt_taxRank) 
+      filter_taxa(tax_data(),
+                  rm_clades = input$contaminant_selector_clade,
+                  rm_taxa = input$contaminant_selector,
+                  taxRank = input$opt_taxRank) 
     if (!is.null(taxLineage$val)) {
       sel_tl = tax_data()[tax_data()[["name"]] == taxLineage$val[length(taxLineage$val)], "taxLineage"][1]
       dmessage("Selected lineage ", sel_tl)
       if (isTRUE(!is.null(sel_tl) && nchar(sel_tl) > 0))
         res <- res & substr(tax_data()$taxLineage, 0, nchar(sel_tl)) == sel_tl
-
+      
     }
     #if (input$opt_taxRank == "-" && input$opt_min_taxon_reads > 0) {
     #  res <- res & apply(taxon_reads(),1,max,na.rm=T) >= get_input("opt_min_taxon_reads")
@@ -352,9 +352,9 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     if (!is.null(input$search_filter_freetext) && nchar(input$search_filter_freetext) > 4 && grepl("$", input$search_filter_freetext, fixed=T)) {
       ## TODO: Try-catch doesn't catch errors - why??
       tryCatch({
-          res <- res & eval(parse(text=get_filter_string(input$search_filter_freetext, "clade_reads")))
-        },
-        error = function(e) message(e)
+        res <- res & eval(parse(text=get_filter_string(input$search_filter_freetext, "clade_reads")))
+      },
+      error = function(e) message(e)
       )
     }
     res <- res %>% na_false
@@ -396,7 +396,7 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     paste(rep(numericColumns1(), times=length(numericColumns2())),
           rep(numericColumns2(), each=length(numericColumns1())))
   })
-
+  
   summarized_report_df <- reactive({
     req(numericColumns())
     
@@ -426,7 +426,7 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
   # dt_proxy <- DT::dataTableProxy(session$ns('dt_samples_comparison'))
   dt_proxy <- DT::dataTableProxy(session$ns('dt_samples_comparison'), session = shiny::getDefaultReactiveDomain())
   dt_proxy1 <- DT::dataTableProxy('dt_samples_comparison', session = shiny::getDefaultReactiveDomain())
-
+  
   observe({
     ## replaceData does not work with modules, currently
     ##  see https://github.com/rstudio/DT/issues/359
@@ -440,7 +440,7 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     # DT::reloadData(dt_proxy, resetPaging=TRUE, clearSelection = "row")
     # DT::reloadData(dt_proxy1, resetPaging=TRUE, clearSelection = "row")
   })
-
+  
   observeEvent(input$btn_filter_row,  {
     current_selected <- input$contaminant_selector_clade
     sel_row <- input$dt_samples_comparison_rows_selected
@@ -451,25 +451,25 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
       sel_name <- tax_data()[which(sel_rows)[sel_row],"name"]
       dmessage("Filtering ",sel_name)
       req(sel_name)
-
+      
       if (!sel_name %in% current_selected)
         updateSelectizeInput(session, "contaminant_selector_clade", selected = c(current_selected, sel_name), choices = c(current_selected, sel_name))
     }
   })
-
+  
   observeEvent(input$contaminant_selector_clade, {
   })
-
+  
   numericColumns1 <- reactive({
     if (is.null(input$opt_numericColumns1)) {
-        shinyWidgets::updateCheckboxGroupButtons(session, ("opt_numericColumns1"), selected = "cladeReads")
+      shinyWidgets::updateCheckboxGroupButtons(session, ("opt_numericColumns1"), selected = "cladeReads")
     }
     input$opt_numericColumns1
   })
-
+  
   numericColumns2 <- reactive({
     if (is.null(input$opt_numericColumns2)) {
-        shinyWidgets::updateCheckboxGroupButtons(session, ("opt_numericColumns2"), selected = "identity")
+      shinyWidgets::updateCheckboxGroupButtons(session, ("opt_numericColumns2"), selected = "identity")
     }
     input$opt_numericColumns2
   })
@@ -538,7 +538,7 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
                     var cell = table.cell(this);
                      
                     var pavian_file = pavian_files_dict[colName];
-                    var base_link1 = \'<p><a href="http://', pavian_options$flask_host, ':', pavian_options$flask_port, '/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=\'
+                    var base_link1 = \'<p><a href="http://webproxy', pavian_options$domain_suffix, '/download_pavian_data?taxid=\' + taxid_string + \'&amp;sample=\' + pavian_file + \'&amp;action=\'
                     var base_link2 = \'" target="_blank">\'
                     var base_link3 = \'</a></p>\'
 
@@ -567,10 +567,10 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
                     }, event); // Note we passed the event as the second argument. Always do this when binding within an event handler!
                     }
                 })'))) %>% formatDT(nSamples = nrow(sample_data()),
-                                   numericColumns = numericColumns(),
-                                   statsColumns = input$opt_statsColumns,
-                                   nColumnsBefore = ncol(tax_data()) - 1,
-                                   groupSampleColumns = input$opt_groupSamples)
+                                    numericColumns = numericColumns(),
+                                    statsColumns = input$opt_statsColumns,
+                                    nColumnsBefore = ncol(tax_data()) - 1,
+                                    groupSampleColumns = input$opt_groupSamples)
   })
   
   dt_proxy1 <- DT::dataTableProxy('dt_samples_comparison', session = shiny::getDefaultReactiveDomain())
@@ -611,7 +611,7 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
     
     columnDefs
   }
-
+  
   observeEvent(input$opt_taxRank, {
     if (input$opt_taxRank == "-") {
       shinyjs::show("opt_hide_zero_taxa")
@@ -619,8 +619,8 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
       shinyjs::hide("opt_hide_zero_taxa")
     }
   })
-
-
+  
+  
   observeEvent(numericColumns(), {
     if (length(numericColumns()) > 1) {
       shinyjs::show("opt_groupSamples")
@@ -628,7 +628,7 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
       shinyjs::hide("opt_groupSamples")
     }
   })
-
+  
   observeEvent(input$double_clicked_row, {
     #dmessage("double-clicked a row!")
     #dmessage(input$double_clicked_row)
@@ -651,7 +651,7 @@ comparisonModule <- function(input, output, session, sample_data, tax_data, clad
       if (isTRUE(groupSampleColumns))
         #seq(i, by=length(numericColumns), length.out=nSamples) + nColumnsBefore + length(numericColumns)*length(statsColumns)
         # show colors when grouping samples
-	seq(i, by=length(numericColumns), length.out=nSamples) + nColumnsBefore + length(numericColumns)*length(statsColumns)
+        seq(i, by=length(numericColumns), length.out=nSamples) + nColumnsBefore + length(numericColumns)*length(statsColumns)
       else
         seq((i-1)*nSamples+1+length(statsColumns)*i, by=1, length.out=nSamples) + nColumnsBefore
     }

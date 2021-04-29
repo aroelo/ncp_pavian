@@ -1,15 +1,36 @@
-stages:
-  - test
-  - deploy
+# image: python:3.6-alpine
+variables:
+  MASTER_PATH: /5_workspace/repos/pavian
+  DEV_PATH: /5_workspace/repos/pavian_dev
+  reposerver: prod-01.airflow.naktuinbouw.cloud
 
-test:
-  stage: test
-  script: 
-    - /home/shiny/dev/ci.bash
-
-deploy_staging:
-  stage: deploy
+dev:
+  stage:
+    build
   script:
-    - /home/shiny/master/ci.bash
+    - eval $(keychain --eval id_rsa_airflow)
+    # this part must be done from prod!
+    - >
+      ssh airflow@$reposerver
+      "cd $DEV_PATH &&
+      git reset --hard &&
+      git checkout $CI_COMMIT_REF_NAME &&
+      git pull"
+    - if [[ $? != 0 ]]; then exit $?; fi
+  except:
+    - master
+
+prod:
+  stage:
+    build
+  script:
+    - eval $(keychain --eval id_rsa_airflow)
+    - >
+      ssh airflow@$reposerver
+      "cd $MASTER_PATH &&
+      git reset --hard &&
+      git checkout master &&
+      git pull"
+    - if [[ $? != 0 ]]; then exit $?; fi
   only:
-  - master
+    - master
