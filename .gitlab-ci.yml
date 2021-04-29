@@ -1,6 +1,5 @@
 # image: python:3.6-alpine
 variables:
-  repobasepath: '/5_workspace/repos/'
   MASTER_PATH: /5_workspace/repos/pavian
   DEV_PATH: /5_workspace/repos/pavian_dev
   reposerver: prod-01.airflow.naktuinbouw.cloud
